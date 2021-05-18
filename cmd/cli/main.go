@@ -2,10 +2,9 @@
 package main
 
 import (
-	"anemone/api"
+	"anemone/adapter"
 )
 
 func main() {
-
-	api.Handler()
+	adapter.Bootstrap()
 }

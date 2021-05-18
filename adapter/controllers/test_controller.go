@@ -10,25 +10,25 @@ import (
 	"anemone/application/usecase"
 )
 
-type UserController interface {
+type TestController interface {
 	Handler() *cobra.Command
 }
 
-type userController struct {
+type testController struct {
 	Interactor usecase.UserInteractor
 }
 
-func newUserController(u usecase.UserInteractor) UserController {
-	return &userController{u}
+func newTestController(u usecase.UserInteractor) UserController {
+	return &testController{u}
 }
 
-func (s *userController) Handler() *cobra.Command {
+func (s *testController) Handler() *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "user",
+		Use:   "test1",
 		Short: "A brief description of your command",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("user called")
+			fmt.Println("test1 called")
 		},
 	}
 	return cmd
@@ -37,6 +37,6 @@ func (s *userController) Handler() *cobra.Command {
 func init() {
 	blder := application.GetBuilderInstance()
 	usecase := usecase.NewUserInteractor()
-	controller := newUserController(usecase)
+	controller := newTestController(usecase)
 	blder.AddCommand(controller.Handler())
 }

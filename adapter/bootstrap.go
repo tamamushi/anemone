@@ -1,9 +1,12 @@
 /* vim: set ts=4 sw=4: */
-package api
+
+package adapter
 
 import (
-	_ "anemone/api/user"
 	"github.com/spf13/cobra"
+
+	_ "anemone/adapter/controllers"
+	"anemone/application"
 )
 
 type Response struct {
@@ -24,10 +27,13 @@ func NewCmdRoot() *cobra.Command {
 	return cmd
 }
 
-func Handler() Response {
+func Bootstrap() {
+
 	cmd := NewCmdRoot()
-	rootCmd.SetArgs([]string{"test1"})
-	cobra.CheckErr(rootCmd.Execute())
+	blder := application.GetBuilderInstance()
+	cmd.AddCommand(blder.GetCommands()...)
+	cmd.SetArgs([]string{"user"})
+	cobra.CheckErr(cmd.Execute())
 }
 
 func init() {
