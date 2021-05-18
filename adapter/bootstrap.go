@@ -32,7 +32,7 @@ func Bootstrap() {
 	cmd := NewCmdRoot()
 	blder := application.GetBuilderInstance()
 	cmd.AddCommand(blder.GetCommands()...)
-	//cmd.SetArgs([]string{"user"})
+	//cmd.SetArgs([]string{"user", "create"})
 	cobra.CheckErr(cmd.Execute())
 }
 

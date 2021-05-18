@@ -18,7 +18,7 @@ type testController struct {
 	Interactor usecase.IUserUseCase
 }
 
-func newTestController(u usecase.IUserUseCase) UserController {
+func newTestController(u usecase.IUserUseCase) TestController {
 	return &testController{u}
 }
 

@@ -12,13 +12,18 @@ import (
 
 type UserController interface {
 	Handler() *cobra.Command
+	FindById(id string)
+	FindAll()
+	Create()
+	Remove()
+	Update()
 }
 
 type userController struct {
 	interactor usecase.IUserUseCase
 }
 
-func newUserController(u usecase.IUserUseCase) UserController {
+func NewUserController(u usecase.IUserUseCase) UserController {
 	return &userController{u}
 }
 
@@ -28,8 +33,22 @@ func (s *userController) Handler() *cobra.Command {
 		Use:   "user",
 		Short: "A brief description of your command",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("user called")
-			fmt.Println("%v", args)
+			if len(args) > 0 {
+				switch args[0] {
+				case "create":
+					s.Create()
+				case "remove":
+					s.Remove()
+				case "update":
+					s.Update()
+				case "findbyid":
+					s.FindById()
+				default:
+					fmt.Println("no method")
+				}
+			} else {
+				fmt.Println("no target subcommand")
+			}
 		},
 	}
 	return cmd
@@ -38,6 +57,22 @@ func (s *userController) Handler() *cobra.Command {
 func init() {
 	blder := application.GetBuilderInstance()
 	usecase := usecase.NewUserInteractor()
-	controller := newUserController(usecase)
+	controller := NewUserController(usecase)
 	blder.AddCommand(controller.Handler())
+}
+
+func (s *userController) Create() {
+	fmt.Println("create")
+}
+
+func (s *userController) Remove() {
+}
+
+func (s *userController) Update() {
+}
+
+func (s *userController) FindById(id string) {
+}
+
+func (s *userController) FindAll() {
 }
