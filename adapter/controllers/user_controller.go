@@ -33,8 +33,8 @@ func (s *userController) Handler() *cobra.Command {
 		Use:   "user",
 		Short: "A brief description of your command",
 		Run: func(cmd *cobra.Command, args []string) {
-			name, _ := cmd.Flags().GetString("data")
-			fmt.Printf("hoge %s", name)
+			name, err := cmd.Flags().GetString("data")
+			id, _ := cmd.Flags().GetString("id")
 
 			if len(args) > 0 {
 				switch args[0] {

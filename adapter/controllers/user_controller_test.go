@@ -26,30 +26,11 @@ type testMethod struct {
 
 type testCase struct {
 	caseName   string
-	testMethod testMethod
 	subCommand string
+	testMethod testMethod
 	arg1       string
 	arg2       string
 	want       bool
-}
-
-type Option func(*testCase)
-
-func Argkey(title string) Option {
-	return func(t *testCase) { t.arg1 = title }
-}
-
-func ArgData(data string) Option {
-	return func(t *testCase) { t.arg2 = data }
-}
-
-func NewTestCase(title string, test testMethod, command string, options ...Option) *testCase {
-	testcase := testCase{title, testMethod{test}, command "", "", false}
-
-	for _, option := range options {
-		option(&testcase)
-	}
-	return &testcase
 }
 
 func testRun(t *testing.T, cases []testCase) {
@@ -64,7 +45,7 @@ func testRun(t *testing.T, cases []testCase) {
 			args := helper.NewArgumentBuilder()
 			args.AddCommand(tt.subCommand)
 
-			fmt.Println("%s", tt.arg1)
+			fmt.Printf("argument %s\n", tt.arg1)
 			/*
 				if (len(tt.arg1) > 0) && len(tt.arg2) > 0 {
 					args.AddArgs(tt.arg1, tt.arg2)
@@ -79,38 +60,40 @@ func testRun(t *testing.T, cases []testCase) {
 
 func TestUserController_CalledCreate(t *testing.T) {
 	cases := []testCase{
-		NewTestCase("user create successfully",
+		{"create user successfully",
+			"create",
 			testMethod{
 				Test: func() {
-					fmt.Printf("called usecase.Create(): user create\n\n")
+					fmt.Printf("called usecase.FindById(): user found\n\n")
 				},
 			},
-			"create",
+			"", "",
 			true,
 		},
 	}
 	testRun(t, cases)
 }
 
-/*
 func TestUserController_CalledRemove(t *testing.T) {
 	cases := []testCase{
 		{"user remove successfully",
+			"remove",
 			testMethod{
 				Test: func() {
 					fmt.Println("user remove")
 				},
 			},
-			"remove",
+			"", "",
 			true,
 		},
 		{"user remove faild",
+			"remove",
 			testMethod{
 				Test: func() {
 					fmt.Println("user remove faild")
 				},
 			},
-			"remove",
+			"", "",
 			false,
 		},
 	}
@@ -120,24 +103,25 @@ func TestUserController_CalledRemove(t *testing.T) {
 func TestUserController_CalledFindById(t *testing.T) {
 	cases := []testCase{
 		{"find user successfully",
+			"findbyid",
 			testMethod{
 				Test: func() {
 					fmt.Printf("called usecase.FindById(): user found\n\n")
 				},
 			},
-			"findbyid",
+			"--id", "3",
 			true,
 		},
 		{"find user faild",
+			"findbyid",
 			testMethod{
 				Test: func() {
 					fmt.Printf("called usecase.FindById(): user not found\n\n")
 				},
 			},
-			"findbyid",
+			"", "",
 			false,
 		},
 	}
 	testRun(t, cases)
 }
-*/
