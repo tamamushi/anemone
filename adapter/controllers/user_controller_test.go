@@ -23,20 +23,30 @@ func (m *userUseCaseMock) Create() {
 	m.MockCreate()
 }
 
-type testMethod struct {
+type tMethod struct {
 	Test func()
 }
 
-type testCase struct {
+type tCase struct {
 	caseName   string
 	subCommand string
-	testMethod testMethod
+	tMethod    tMethod
 	arg1       string
 	arg2       string
 	want       bool
 }
 
-func SetupUserControllerTest(t *testing.T) (*cobra.Command, *bytes.Buffer) {
+type Buf = bytes.Buffer
+type Cobra = cobra.Command
+
+func SetupUserControllerTest(t *testing.T, tt *tCase) (*Cobra, *Buf) {
+
+	// ユースケースの準備
+	usecase := &userUseCaseMock{}
+	usecase.MockCreate = tt.tMethod.Test
+
+	// コントローラーの準備
+	controller := controllers.NewUserController(usecase)
 
 	cmd := &cobra.Command{
 		Use:   "anemone",
@@ -48,52 +58,43 @@ func SetupUserControllerTest(t *testing.T) (*cobra.Command, *bytes.Buffer) {
 	cmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	buf := new(bytes.Buffer)
 	cmd.SetOutput(buf)
+
+	// rootcmdへコマンドコントローラーを登録
+	cmd.AddCommand(controller.Handler())
+
+	args := helper.NewArgumentBuilder()
+	if len(tt.subCommand) != 0 {
+		args.AddCommand(tt.subCommand)
+	}
+
+	cmd.SetArgs(append([]string{"user"}, args.GetArgString()...))
 	return cmd, buf
 }
 
-func testRun(t *testing.T, cases []testCase) {
+func testRun(t *testing.T, cases []tCase) {
 	for _, tt := range cases {
 		t.Run(tt.caseName, func(t *testing.T) {
 
-			// ユースケースの準備
-			usecase := &userUseCaseMock{}
-			usecase.MockCreate = tt.testMethod.Test
-
-			// コントローラーの準備
-			controller := controllers.NewUserController(usecase)
-
 			// rootcmdの準備
-			cmd, stdOut := SetupUserControllerTest(t)
+			cmd, _ := SetupUserControllerTest(t, &tt)
 
-			// rootcmdへコマンドコントローラーを登録
-			cmd.AddCommand(controller.Handler())
-
-			args := helper.NewArgumentBuilder()
-			if len(tt.subCommand) != 0 {
-				args.AddCommand(tt.subCommand)
-			}
-			//fmt.Printf("argument %s\n", tt.arg1)
-			/*
-				if (len(tt.arg1) > 0) && len(tt.arg2) > 0 {
-					args.AddArgs(tt.arg1, tt.arg2)
-				}
-			*/
-			cmd.SetArgs(append([]string{"user"}, args.GetArgString()...))
 			err := cmd.Execute()
+			fmt.Printf("%#v", err)
+			t.Logf("Expected faild")
+			//fmt.Printf("%v", err.Code())
+			fmt.Printf(": %v", err)
 			if err != nil {
-				// errの中にはエラーコードが入ってる状態にする。
-				// errコードを見て、エラーメッセージを出力する。
-				t.Fatal(stdOut.String(), err)
+				t.Logf("%s", err)
 			}
 		})
 	}
 }
 
 func TestUserController_RequiredCommand(t *testing.T) {
-	cases := []testCase{
+	cases := []tCase{
 		{"No target command?",
 			"",
-			testMethod{
+			tMethod{
 				Test: func() { return },
 			},
 			"", "",
@@ -104,10 +105,10 @@ func TestUserController_RequiredCommand(t *testing.T) {
 }
 
 func TestUserController_CalledCreate(t *testing.T) {
-	cases := []testCase{
+	cases := []tCase{
 		{"create user successfully",
 			"create",
-			testMethod{
+			tMethod{
 				Test: func() {
 					fmt.Printf("called usecase.FindById(): user found\n\n")
 				},

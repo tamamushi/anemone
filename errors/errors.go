@@ -19,14 +19,14 @@ type structError struct {
 	err  error
 }
 
-func (e structError) Error() string {
+func (e *structError) Error() string {
 	return fmt.Sprintf("Code: %s, Msg: %s", e.code, e.err)
 }
 
 func New(c codes.Code, msg string) AnemoneError {
-	return structError{code: c, err: xerrors.New(msg)}
+	return &structError{code: c, err: xerrors.New(msg)}
 }
 
-func (e structError) Code() codes.Code {
+func (e *structError) Code() codes.Code {
 	return e.code
 }
