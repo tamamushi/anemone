@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	_ "anemone/adapter/controllers"
+	"anemone/adapter/helper"
 	"anemone/application"
 )
 
@@ -23,7 +24,6 @@ func NewCmdRoot() *cobra.Command {
 	cobra.OnInitialize(initConfig)
 
 	cmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 	return cmd
 }
 
@@ -32,7 +32,13 @@ func Bootstrap() {
 	cmd := NewCmdRoot()
 	blder := application.GetBuilderInstance()
 	cmd.AddCommand(blder.GetCommands()...)
-	//cmd.SetArgs([]string{"user", "create"})
+
+	args := helper.NewArgumentBuilder()
+	args.AddCommand("user", "create")
+
+	jsond := "{ \"id\": \"xxxx-xxxx-xxxx-xxx\", \"email\": \"t.koube.cp@gmail.com\" }"
+	cmd.SetArgs([]string{"user", "create", "--data", jsond})
+	//fmt.Printf("%s", []string{"user", "create", "--data", jsond})
 	cobra.CheckErr(cmd.Execute())
 }
 

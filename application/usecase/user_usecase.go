@@ -3,6 +3,9 @@
 package usecase
 
 type IUserUseCase interface {
+	Create()
+	Remove(id string)
+	FindById(id string)
 }
 
 type userInteractor struct {
@@ -10,6 +13,15 @@ type userInteractor struct {
 
 func NewUserInteractor() IUserUseCase {
 	return &userInteractor{}
+}
+
+func (u *userInteractor) Create() {
+}
+
+func (u *userInteractor) FindById(id string) {
+}
+
+func (u *userInteractor) Remove(id string) {
 }
 
 /*

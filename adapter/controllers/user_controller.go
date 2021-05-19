@@ -33,6 +33,9 @@ func (s *userController) Handler() *cobra.Command {
 		Use:   "user",
 		Short: "A brief description of your command",
 		Run: func(cmd *cobra.Command, args []string) {
+			name, _ := cmd.Flags().GetString("data")
+			fmt.Printf("hoge %s", name)
+
 			if len(args) > 0 {
 				switch args[0] {
 				case "create":
@@ -42,7 +45,7 @@ func (s *userController) Handler() *cobra.Command {
 				case "update":
 					s.Update()
 				case "findbyid":
-					s.FindById()
+					s.FindById("hoge")
 				default:
 					fmt.Println("no method")
 				}
@@ -51,6 +54,8 @@ func (s *userController) Handler() *cobra.Command {
 			}
 		},
 	}
+
+	cmd.Flags().String("data", "", "Your name")
 	return cmd
 }
 
@@ -62,7 +67,7 @@ func init() {
 }
 
 func (s *userController) Create() {
-	fmt.Println("create")
+	s.interactor.Create()
 }
 
 func (s *userController) Remove() {
