@@ -4,7 +4,7 @@ package controllers_test
 
 import (
 	"bytes"
-	"fmt"
+	//"fmt"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -37,10 +37,25 @@ type tCase struct {
 	want       bool
 }
 
-type Buf = bytes.Buffer
-type Cobra = cobra.Command
+func testRun(t *testing.T, cases []tCase) {
+	for _, tt := range cases {
+		t.Run(tt.caseName, func(t *testing.T) {
 
-func SetupUserControllerTest(t *testing.T, tt *tCase) (*Cobra, *Buf) {
+			// rootcmdの準備
+			cmd, _ := SetupUserControllerTest(t, &tt)
+
+			err := cmd.Execute()
+			t.Logf("Expected faild")
+			//fmt.Printf("%v", err.Code())
+			if err != nil {
+				c := errors.Code(err)
+				t.Logf("%s", c)
+			}
+		})
+	}
+}
+
+func SetupUserControllerTest(t *testing.T, tt *tCase) (*cobra.Command, *bytes.Buffer) {
 
 	// ユースケースの準備
 	usecase := &userUseCaseMock{}
@@ -70,25 +85,6 @@ func SetupUserControllerTest(t *testing.T, tt *tCase) (*Cobra, *Buf) {
 
 	cmd.SetArgs(append([]string{"user"}, args.GetArgString()...))
 	return cmd, buf
-}
-
-func testRun(t *testing.T, cases []tCase) {
-	for _, tt := range cases {
-		t.Run(tt.caseName, func(t *testing.T) {
-
-			// rootcmdの準備
-			cmd, _ := SetupUserControllerTest(t, &tt)
-
-			err := cmd.Execute.(errors.)
-			fmt.Printf("%#v", err)
-			t.Logf("Expected faild")
-			//fmt.Printf("%v", err.Code())
-			fmt.Printf(": %v", err.Code())
-			if err != nil {
-				t.Logf("%s", err)
-			}
-		})
-	}
 }
 
 func TestUserController_RequiredCommand(t *testing.T) {
