@@ -3,7 +3,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 
 	"anemone/application"
@@ -58,7 +57,10 @@ func (s *userController) Handler() *cobra.Command {
 			case "findbyid":
 				s.FindById("hoge")
 			default:
-				fmt.Println("no method")
+				return errors.New(
+					codes.UnSupportedMethod,
+					fmt.Sprintf("UnSupported called method: %s", args[0]),
+				)
 			}
 			return nil
 		},

@@ -4,7 +4,7 @@ package controllers_test
 
 import (
 	"bytes"
-	//"fmt"
+	"fmt"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -12,6 +12,7 @@ import (
 	"anemone/adapter/controllers"
 	"anemone/adapter/helper"
 	"anemone/application/usecase"
+	"anemone/codes"
 	"anemone/errors"
 )
 
@@ -30,29 +31,13 @@ type tMethod struct {
 
 type tCase struct {
 	caseName   string
+	ExpectMsg  string
+	UnExpecMsg string
 	subCommand string
 	tMethod    tMethod
 	arg1       string
 	arg2       string
-	want       bool
-}
-
-func testRun(t *testing.T, cases []tCase) {
-	for _, tt := range cases {
-		t.Run(tt.caseName, func(t *testing.T) {
-
-			// rootcmdの準備
-			cmd, _ := SetupUserControllerTest(t, &tt)
-
-			err := cmd.Execute()
-			t.Logf("Expected faild")
-			//fmt.Printf("%v", err.Code())
-			if err != nil {
-				c := errors.Code(err)
-				t.Logf("%s", c)
-			}
-		})
-	}
+	Evaluate   func(interface{}) bool
 }
 
 func SetupUserControllerTest(t *testing.T, tt *tCase) (*cobra.Command, *bytes.Buffer) {
@@ -87,18 +72,88 @@ func SetupUserControllerTest(t *testing.T, tt *tCase) (*cobra.Command, *bytes.Bu
 	return cmd, buf
 }
 
-func TestUserController_RequiredCommand(t *testing.T) {
-	cases := []tCase{
-		{"No target command?",
-			"",
-			tMethod{
-				Test: func() { return },
-			},
-			"", "",
-			true,
-		},
+func testRun(t *testing.T, cases []tCase) {
+	for _, tt := range cases {
+		t.Run(tt.caseName, func(t *testing.T) {
+
+			// rootcmdの準備
+			cmd, _ := SetupUserControllerTest(t, &tt)
+			err := cmd.Execute()
+			if err != nil {
+				return
+			}
+		})
 	}
-	testRun(t, cases)
+}
+
+func TestUserControllerCalledCommand(t *testing.T) {
+	t.Run("Called Create Behavior", func(t *testing.T) {
+
+		t.Logf("Called command check.")
+		expect := fmt.Sprintf("Return code expected NotEnoughArgument.")
+		cmd, _ := SetupUserControllerTest(
+			t,
+			&tCase{
+				tMethod:    tMethod{Test: func() { return }},
+				subCommand: "create",
+			},
+		)
+		//t.Logf("log: %s", buf)
+
+		if err := cmd.Execute(); err != nil {
+			t.Errorf("　[NG] %s But returned %s", expect, errors.Code(err))
+		}
+	})
+}
+
+func TestUserControllerCheckHandler(t *testing.T) {
+
+	t.Run("Called Behavior", func(t *testing.T) {
+
+		t.Logf("Called Not enough argumnt.")
+		expect := fmt.Sprintf("Return code expected NotEnoughArgument.")
+		cmd, _ := SetupUserControllerTest(
+			t,
+			&tCase{
+				tMethod:    tMethod{Test: func() { return }},
+				subCommand: "",
+			},
+		)
+		err := cmd.Execute()
+
+		if err, ok := err.(error); ok {
+			c := errors.Code(err)
+			if c == codes.NotEnoughArgument {
+				//NotEnoughArgumentが返却されれば期待通り
+				t.Logf("　[OK] %s", expect)
+			} else {
+				//NotEnoughArgument以外が返却されたらおかしい
+				t.Errorf("　[NG] %s But returned %s", expect, errors.Code(err))
+			}
+		}
+
+		t.Logf("Called unsupported Method.")
+		cmd, _ = SetupUserControllerTest(
+			t,
+			&tCase{
+				tMethod:    tMethod{Test: func() { return }},
+				subCommand: "UnsupportedMethod",
+			},
+		)
+		err = cmd.Execute()
+
+		expect = fmt.Sprintf("Return code expected UnSupportedMethod.")
+		if err, ok := err.(error); ok {
+			c := errors.Code(err)
+			if c == codes.UnSupportedMethod {
+				//NotEnoughArgumentが返却されれば期待通り
+				t.Logf("　[OK] %s", expect)
+			} else {
+				//NotEnoughArgument以外が返却されたらおかしい
+				t.Errorf("　[NG] %s But returned %s", expect, errors.Code(err))
+			}
+		}
+	})
 }
 
 /*

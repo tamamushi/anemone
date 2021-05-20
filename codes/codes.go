@@ -2,15 +2,16 @@
 
 package codes
 
-type Code int
+type Code string
 
 const (
-	OK Code = iota + 1
-	NotEnoughArgument
-	Unknown
-	ForTestCode
+	OK                Code = "OK"
+	NotEnoughArgument Code = "NotEnoughArgument"
+	UnSupportedMethod Code = "UnSupportedMethod"
+	Unknown           Code = "Unknown"
+	ForTestCode       Code = "ForTestCode"
 )
 
 func (c Code) String() string {
-	return [...]string{"OK", "NotEnoughArgument", "Unknown", "ForTestCode"}[c-1]
+	return string(c)
 }
