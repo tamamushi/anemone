@@ -2,10 +2,16 @@
 
 package usecase
 
+import (
+	"anemone/model"
+)
+
 type IUserUseCase interface {
 	Create()
-	Remove(id string)
-	FindById(id string)
+	Remove(id string) error
+	Update()
+	FindById(id string) (*model.User, error)
+	Finds()
 }
 
 type userInteractor struct {
@@ -17,11 +23,15 @@ func NewUserInteractor() IUserUseCase {
 
 func (u *userInteractor) Create() {
 }
-
-func (u *userInteractor) FindById(id string) {
+func (u *userInteractor) Remove(id string) error {
+	return nil
 }
-
-func (u *userInteractor) Remove(id string) {
+func (u *userInteractor) Update() {
+}
+func (u *userInteractor) FindById(id string) (*model.User, error) {
+	return nil, nil
+}
+func (u *userInteractor) Finds() {
 }
 
 /*

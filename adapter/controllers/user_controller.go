@@ -5,7 +5,7 @@ package controllers
 import (
 	"github.com/spf13/cobra"
 
-	"anemone/adapter/helper"
+	"anemone/adapter/gateway"
 	"anemone/application"
 	"anemone/application/usecase"
 	"anemone/codes"
@@ -14,19 +14,20 @@ import (
 
 type UserController interface {
 	Handler() *cobra.Command
-	FindById(id string)
-	FindAll()
-	Create()
-	Remove()
-	Update()
+	Create() error
+	Remove(id string) error
+	Update() error
+	FindById(id string) error
+	Finds() error
 }
 
 type userController struct {
 	interactor usecase.IUserUseCase
+	response   gateway.IResponse
 }
 
-func NewUserController(u usecase.IUserUseCase) UserController {
-	return &userController{u}
+func NewUserController(u usecase.IUserUseCase, r gateway.IResponse) UserController {
+	return &userController{u, r}
 }
 
 func (s *userController) Handler() *cobra.Command {
@@ -42,21 +43,39 @@ func (s *userController) Handler() *cobra.Command {
 					"Required target sub command",
 				)
 			}
+			switch args[0] {
+			case "remove", "findbyid":
+				id, _ := cmd.Flags().GetString("id")
+				if len(id) < 1 {
+					return errors.New(
+						codes.NotEnoughArgument,
+						"Need to specified \x1b[3mID\x1b[0m",
+					)
+				}
+			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			//name, err := cmd.Flags().GetString("data")
-			//id, _ := cmd.Flags().GetString("id")
 
 			switch args[0] {
 			case "create":
-				s.Create()
+				return s.Create()
 			case "remove":
-				s.Remove()
+				id, _ := cmd.Flags().GetString("id")
+				err := s.Remove(id)
+				if err != nil {
+					return err
+				}
+				cmd.Printf("%s", id)
 			case "update":
-				s.Update()
+				return s.Update()
 			case "findbyid":
-				s.FindById("hoge")
+				id, _ := cmd.Flags().GetString("id")
+				err := s.FindById(id)
+				if err != nil {
+					return err
+				}
 			default:
 				return errors.New(
 					codes.UnSupportedMethod,
@@ -66,30 +85,55 @@ func (s *userController) Handler() *cobra.Command {
 			return nil
 		},
 	}
-
+	cmd.SetOutput(s.response.Buffer)
 	cmd.Flags().String("data", "", "Your name")
+	cmd.Flags().String("id", "", "Your name")
 	return cmd
 }
 
 func init() {
 	blder := application.GetBuilderInstance()
 	usecase := usecase.NewUserInteractor()
-	controller := NewUserController(usecase)
+	response := gateway.NewResponse()
+	controller := NewUserController(usecase, response)
 	blder.AddCommand(controller.Handler())
 }
 
-func (s *userController) Create() {
+func (s *userController) Create() error {
 	s.interactor.Create()
+	return nil
 }
 
-func (s *userController) Remove() {
+func (s *userController) Remove(id string) error {
+
+	err := s.interactor.Remove(id)
+	if err != nil {
+		return errors.Newf(
+			codes.InternalServerError,
+			"Internal Server Error: %s",
+			err,
+		)
+	}
+	return nil
 }
 
-func (s *userController) Update() {
+func (s *userController) Update() error {
+	return nil
 }
 
-func (s *userController) FindById(id string) {
+func (s *userController) FindById(id string) error {
+
+	_, err := s.interactor.FindById(id)
+	if err != nil {
+		return errors.Newf(
+			codes.InternalServerError,
+			"Internal Server Error: %s",
+			err,
+		)
+	}
+	return nil
 }
 
-func (s *userController) FindAll() {
+func (s *userController) Finds() error {
+	return nil
 }

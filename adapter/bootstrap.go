@@ -3,6 +3,9 @@
 package adapter
 
 import (
+	"bytes"
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	_ "anemone/adapter/controllers"
@@ -30,6 +33,9 @@ func NewCmdRoot() *cobra.Command {
 func Bootstrap() {
 
 	cmd := NewCmdRoot()
+	buffer := &bytes.Buffer{}
+	cmd.SetOutput(buffer)
+
 	blder := application.GetBuilderInstance()
 	cmd.AddCommand(blder.GetCommands()...)
 
@@ -40,6 +46,7 @@ func Bootstrap() {
 	cmd.SetArgs([]string{"user", "create", "--data", jsond})
 	//fmt.Printf("%s", []string{"user", "create", "--data", jsond})
 	cobra.CheckErr(cmd.Execute())
+	fmt.Print(buffer)
 }
 
 func initConfig() {

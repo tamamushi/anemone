@@ -2,6 +2,8 @@
 
 package helper
 
+import "fmt"
+
 type ArgumentBuilder interface {
 	AddArgs(p string, v string)
 	AddCommand(str ...string)
@@ -18,7 +20,7 @@ func NewArgumentBuilder() ArgumentBuilder {
 }
 
 func (c *argumentBuilder) AddArgs(p string, v string) {
-	c.args = append(c.args, p, v)
+	c.args = append(c.args, fmt.Sprintf("--%s", p), v)
 }
 
 func (c *argumentBuilder) AddCommand(str ...string) {

@@ -5,11 +5,14 @@ package codes
 type Code string
 
 const (
-	OK                Code = "OK"
-	NotEnoughArgument Code = "NotEnoughArgument"
-	UnSupportedMethod Code = "UnSupportedMethod"
-	Unknown           Code = "Unknown"
-	ForTestCode       Code = "ForTestCode"
+	OK                  Code = "OK"
+	NotEnoughArgument   Code = "NotEnoughArgument"
+	InvalidArgument     Code = "InvalidArgument"
+	InternalServerError Code = "InternalServerError"
+	UnSupportedMethod   Code = "UnSupportedMethod"
+	Unknown             Code = "Unknown"
+	Nil                 Code = "Nil"
+	ForTestCode         Code = "ForTestCode"
 )
 
 func (c Code) String() string {
