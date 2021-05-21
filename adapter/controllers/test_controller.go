@@ -15,10 +15,10 @@ type TestController interface {
 }
 
 type testController struct {
-	Interactor usecase.UserInteractor
+	Interactor usecase.IUserUseCase
 }
 
-func newTestController(u usecase.UserInteractor) UserController {
+func newTestController(u usecase.IUserUseCase) UserController {
 	return &testController{u}
 }
 

@@ -15,10 +15,10 @@ type UserController interface {
 }
 
 type userController struct {
-	Interactor usecase.UserInteractor
+	interactor usecase.IUserUseCase
 }
 
-func newUserController(u usecase.UserInteractor) UserController {
+func newUserController(u usecase.IUserUseCase) UserController {
 	return &userController{u}
 }
 
@@ -29,6 +29,7 @@ func (s *userController) Handler() *cobra.Command {
 		Short: "A brief description of your command",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println("user called")
+			fmt.Println("%v", args)
 		},
 	}
 	return cmd
