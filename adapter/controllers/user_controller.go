@@ -39,6 +39,9 @@ func init() {
 	blder.AddCommand(controller.Handler())
 }
 
+func (s *userController) () *cobra.Command {
+}
+
 func (s *userController) Handler() *cobra.Command {
 
 	cmd := &cobra.Command{
@@ -76,8 +79,7 @@ func (s *userController) Handler() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				s.response.
-					cmd.Printf("%s", id)
+				cmd.Printf("%s", id)
 			case "update":
 				return s.Update()
 			case "findbyid":
