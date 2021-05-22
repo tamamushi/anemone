@@ -99,3 +99,42 @@ func (s *userController) Handler() *cobra.Command {
 	cmd.Flags().String("id", "", "Your name")
 	return cmd
 }
+
+func (s *userController) Create() error {
+	s.interactor.Create()
+	return nil
+}
+
+func (s *userController) Remove(id string) error {
+
+	err := s.interactor.Remove(id)
+	if err != nil {
+		return errors.Newf(
+			codes.InternalServerError,
+			"Internal Server Error: %s",
+			err,
+		)
+	}
+	return nil
+}
+
+func (s *userController) Update() error {
+	return nil
+}
+
+func (s *userController) FindById(id string) error {
+
+	_, err := s.interactor.FindById(id)
+	if err != nil {
+		return errors.Newf(
+			codes.InternalServerError,
+			"Internal Server Error: %s",
+			err,
+		)
+	}
+	return nil
+}
+
+func (s *userController) Finds() error {
+	return nil
+}
