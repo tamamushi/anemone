@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"anemone/adapter/gateway"
-	"anemone/application"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"

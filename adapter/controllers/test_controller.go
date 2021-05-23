@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 
-	"anemone/application"
+	"anemone/adapter/helper"
 	"anemone/application/usecase"
 )
 
@@ -35,7 +35,7 @@ func (s *testController) Handler() *cobra.Command {
 }
 
 func init() {
-	blder := application.GetBuilderInstance()
+	blder := helper.GetBuilderInstance("root")
 	usecase := usecase.NewUserInteractor()
 	controller := newTestController(usecase)
 	blder.AddCommand(controller.Handler())

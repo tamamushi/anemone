@@ -1,12 +1,11 @@
 /* vim: set ts=4 sw=4: */
 
-package controllers
+package handler
 
 import (
 	"github.com/spf13/cobra"
 
 	"anemone/adapter/gateway"
-	"anemone/application"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -20,19 +19,17 @@ type UserRemoveHanlder interface {
 
 type handler struct {
 	interactor usecase.IUserUseCase
-	response   gateway.IResponse
 }
 
-func NewUserRemoveHanlder(u usecase.IUserUseCase, r gateway.IResponse) UserRemoveHanlder {
-	return &userRemoveHandler{u, r}
+func NewUserRemoveHanlder(u usecase.IUserUseCase) UserRemoveHanlder {
+	return &userRemoveHandler{u}
 }
 
 func init() {
 	blder := application.GetBuilderInstance()
 	usecase := usecase.NewUserInteractor()
-	response := gateway.NewResponse()
-	controller := NewUserRemoveHanlder(usecase, response)
-	blder.AddCommand(controller.Handler())
+	handler := NewUserRemoveHanlder(usecase)
+	blder.AddCommand(handler.Handler())
 }
 
 func (s *handler) Handler() *cobra.Command {
@@ -56,8 +53,6 @@ func (s *handler) Handler() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			s.response.
-				cmd.Printf("%s", id)
 		},
 	}
 	cmd.Flags().String("id", "", "Your name")

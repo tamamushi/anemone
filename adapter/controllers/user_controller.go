@@ -3,11 +3,12 @@
 package controllers
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
-	"anemone/adapter/gateway"
-	_ "anemone/adapter/handler"
-	"anemone/application"
+	//_ "anemone/adapter/handler"
+	"anemone/adapter/helper"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -18,24 +19,25 @@ type UserController interface {
 	Handler() *cobra.Command
 }
 
-type userController struct {
+type controller struct {
 	interactor usecase.IUserUseCase
-	response   gateway.IResponse
+	blder      helper.Builder
 }
 
-func NewUserController(u usecase.IUserUseCase, r gateway.IResponse) UserController {
-	return &userController{u, r}
+func NewUserController(u usecase.IUserUseCase) UserController {
+	return &controller{u, helper.GetBuilderInstance("user")}
 }
 
 func init() {
-	blder := application.GetBuilderInstance()
+	blder := helper.GetBuilderInstance("root")
+
+	fmt.Printf("%#v\n", blder)
 	usecase := usecase.NewUserInteractor()
-	response := gateway.NewResponse()
-	controller := NewUserController(usecase, response)
+	controller := NewUserController(usecase)
 	blder.AddCommand(controller.Handler())
 }
 
-func (s *userController) Handler() *cobra.Command {
+func (s *controller) Handler() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "user",
@@ -57,5 +59,8 @@ func (s *userController) Handler() *cobra.Command {
 			)
 		},
 	}
+	fmt.Printf("%#v\n", s.blder)
+	//subs := s.blder.GetCommands()
+	//cmd.AddCommand(subs...)
 	return cmd
 }
