@@ -21,8 +21,23 @@ import (
 	"anemone/errors"
 )
 
-// UserController のinterface定義
-type UserController interface {
+// TODO(koube):
+// GetBuilderInstanceに絡む部分のテストが未実施。正常なBuilderインスタンスが
+// 返って来なかった場合はエラーが反る。
+
+// Userコマンドを構築する起点になるController
+// 実行可能なコマンドは以下がある
+//
+//  create
+//  delete
+//  update
+//  findbyid
+//  finds
+//
+// Interface Definition
+//
+// UserControllerのInterfaceは定義は以下の通り
+type IUserController interface {
 	Handler() *cobra.Command
 }
 
@@ -30,7 +45,8 @@ type controller struct {
 	interactor usecase.IUserUseCase
 }
 
-func NewUserController(u usecase.IUserUseCase) UserController {
+// UserCoontroller のコンストラクタ
+func NewUserController(u usecase.IUserUseCase) IUserController {
 	return &controller{u}
 }
 

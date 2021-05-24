@@ -1,5 +1,10 @@
 /* vim: set ts=4 sw=4: */
 
+/*
+Adapter は実行時のブートストラップが含まれる。
+CleanArchitectureのInterface Adaptersにおける振る舞いを
+実装しています。
+*/
 package adapter
 
 import (

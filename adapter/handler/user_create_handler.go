@@ -3,38 +3,43 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
+	"os"
 
-	"anemone/adapter/gateway"
+	"anemone/adapter/helper"
 	"anemone/application/usecase"
-	"anemone/codes"
-	"anemone/errors"
+	//"anemone/adapter/gateway"
+	//"anemone/codes"
+	//"anemone/errors"
 )
 
-// UserController のinterface定義
 type UserCreateHandler interface {
-	Handler() *cobra.Command
+	Handle() *cobra.Command
 	Create() error
 }
 
-type userCreateHandler struct {
+type handler struct {
 	interactor usecase.IUserUseCase
-	response   gateway.IResponse
 }
 
-func NewUserCreateHandler(u usecase.IUserUseCase, r gateway.IResponse) UserController {
-	return &userCreateHandler{u, r}
+func NewUserCreateHandler(u usecase.IUserUseCase) UserCreateHandler {
+	return &handler{u}
 }
 
 func init() {
-	blder := application.GetBuilderInstance()
+	blder, err := helper.GetBuilderInstance("user")
+	if err != nil {
+		msg := "Failed to building User command group (%s)"
+		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
+		os.Exit(1)
+	}
 	usecase := usecase.NewUserInteractor()
-	response := gateway.NewResponse()
-	controller := NewUserController(usecase, response)
-	blder.AddCommand(controller.Handler())
+	handler := NewUserCreateHandler(usecase)
+	blder.AddCommand(handler.Handle())
 }
 
-func (s *userCreateHandler) Handler() *cobra.Command {
+func (s *handler) Handle() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "create",
@@ -47,7 +52,7 @@ func (s *userCreateHandler) Handler() *cobra.Command {
 	return cmd
 }
 
-func (s *userController) Create() error {
-	s.interactor.Create()
+func (s *handler) Create() error {
+	//s.interactor.Create()
 	return nil
 }
