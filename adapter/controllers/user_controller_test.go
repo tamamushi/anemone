@@ -30,7 +30,26 @@ type testCase struct {
 	subCommand string
 	arg1       string
 	arg2       string
-	watn       bool
+	want       bool
+}
+
+type Option func(*testCase)
+
+func Argkey(title string) Option {
+	return func(t *testCase) { t.arg1 = title }
+}
+
+func ArgData(data string) Option {
+	return func(t *testCase) { t.arg2 = data }
+}
+
+func NewTestCase(title string, test testMethod, command string, options ...Option) *testCase {
+	testcase := testCase{title, testMethod{test}, command "", "", false}
+
+	for _, option := range options {
+		option(&testcase)
+	}
+	return &testcase
 }
 
 func testRun(t *testing.T, cases []testCase) {
@@ -60,7 +79,7 @@ func testRun(t *testing.T, cases []testCase) {
 
 func TestUserController_CalledCreate(t *testing.T) {
 	cases := []testCase{
-		{"user create successfully",
+		NewTestCase("user create successfully",
 			testMethod{
 				Test: func() {
 					fmt.Printf("called usecase.Create(): user create\n\n")
@@ -69,19 +88,11 @@ func TestUserController_CalledCreate(t *testing.T) {
 			"create",
 			true,
 		},
-		{"user create faild",
-			testMethod{
-				Test: func() {
-					fmt.Println("user create faild")
-				},
-			},
-			"create",
-			false,
-		},
 	}
 	testRun(t, cases)
 }
 
+/*
 func TestUserController_CalledRemove(t *testing.T) {
 	cases := []testCase{
 		{"user remove successfully",
@@ -129,3 +140,4 @@ func TestUserController_CalledFindById(t *testing.T) {
 	}
 	testRun(t, cases)
 }
+*/
