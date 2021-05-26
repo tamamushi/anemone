@@ -3,6 +3,7 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 
@@ -32,26 +33,30 @@ func (s *userController) Handler() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "user",
 		Short: "A brief description of your command",
-		Run: func(cmd *cobra.Command, args []string) {
-			name, err := cmd.Flags().GetString("data")
-			id, _ := cmd.Flags().GetString("id")
-
-			if len(args) > 0 {
-				switch args[0] {
-				case "create":
-					s.Create()
-				case "remove":
-					s.Remove()
-				case "update":
-					s.Update()
-				case "findbyid":
-					s.FindById("hoge")
-				default:
-					fmt.Println("no method")
-				}
-			} else {
-				fmt.Println("no target subcommand")
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				// Error コードを返す
+				return errors.New("Required target sub command")
 			}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			//name, err := cmd.Flags().GetString("data")
+			//id, _ := cmd.Flags().GetString("id")
+
+			switch args[0] {
+			case "create":
+				s.Create()
+			case "remove":
+				s.Remove()
+			case "update":
+				s.Update()
+			case "findbyid":
+				s.FindById("hoge")
+			default:
+				fmt.Println("no method")
+			}
+			return nil
 		},
 	}
 

@@ -3,8 +3,11 @@
 package controllers_test
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
+
+	"github.com/spf13/cobra"
 
 	"anemone/adapter/controllers"
 	"anemone/adapter/helper"
@@ -33,29 +36,71 @@ type testCase struct {
 	want       bool
 }
 
+func SetupUserControllerTest(t *testing.T) (*cobra.Command, *bytes.Buffer) {
+
+	cmd := &cobra.Command{
+		Use:   "anemone",
+		Short: "A brief description of your application",
+
+		// Usageは出さない
+		SilenceUsage: true,
+	}
+	cmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	buf := new(bytes.Buffer)
+	cmd.SetOutput(buf)
+	return cmd, buf
+}
+
 func testRun(t *testing.T, cases []testCase) {
 	for _, tt := range cases {
 		t.Run(tt.caseName, func(t *testing.T) {
+
+			// ユースケースの準備
 			usecase := &userUseCaseMock{}
 			usecase.MockCreate = tt.testMethod.Test
 
+			// コントローラーの準備
 			controller := controllers.NewUserController(usecase)
-			cmd := controller.Handler()
+
+			// rootcmdの準備
+			cmd, stdOut := SetupUserControllerTest(t)
+
+			// rootcmdへコマンドコントローラーを登録
+			cmd.AddCommand(controller.Handler())
 
 			args := helper.NewArgumentBuilder()
-			args.AddCommand(tt.subCommand)
-
-			fmt.Printf("argument %s\n", tt.arg1)
+			if len(tt.subCommand) != 0 {
+				args.AddCommand(tt.subCommand)
+			}
+			//fmt.Printf("argument %s\n", tt.arg1)
 			/*
 				if (len(tt.arg1) > 0) && len(tt.arg2) > 0 {
 					args.AddArgs(tt.arg1, tt.arg2)
 				}
 			*/
-
-			cmd.SetArgs(args.GetArgString())
-			cmd.Execute()
+			cmd.SetArgs(append([]string{"user"}, args.GetArgString()...))
+			err := cmd.Execute()
+			if err != nil {
+				// errの中にはエラーコードが入ってる状態にする。
+				// errコードを見て、エラーメッセージを出力する。
+				t.Fatal(stdOut.String(), err)
+			}
 		})
 	}
+}
+
+func TestUserController_RequiredCommand(t *testing.T) {
+	cases := []testCase{
+		{"No target command?",
+			"",
+			testMethod{
+				Test: func() { return },
+			},
+			"", "",
+			true,
+		},
+	}
+	testRun(t, cases)
 }
 
 func TestUserController_CalledCreate(t *testing.T) {
@@ -74,6 +119,7 @@ func TestUserController_CalledCreate(t *testing.T) {
 	testRun(t, cases)
 }
 
+/*
 func TestUserController_CalledRemove(t *testing.T) {
 	cases := []testCase{
 		{"user remove successfully",
@@ -125,3 +171,4 @@ func TestUserController_CalledFindById(t *testing.T) {
 	}
 	testRun(t, cases)
 }
+*/
