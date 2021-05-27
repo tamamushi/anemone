@@ -12,6 +12,7 @@ import (
 	"anemone/adapter/controllers"
 	"anemone/adapter/helper"
 	"anemone/application/usecase"
+	"anemone/errors"
 )
 
 type userUseCaseMock struct {
@@ -78,11 +79,11 @@ func testRun(t *testing.T, cases []tCase) {
 			// rootcmdの準備
 			cmd, _ := SetupUserControllerTest(t, &tt)
 
-			err := cmd.Execute()
+			err := cmd.Execute.(errors.)
 			fmt.Printf("%#v", err)
 			t.Logf("Expected faild")
 			//fmt.Printf("%v", err.Code())
-			fmt.Printf(": %v", err)
+			fmt.Printf(": %v", err.Code())
 			if err != nil {
 				t.Logf("%s", err)
 			}
@@ -104,6 +105,7 @@ func TestUserController_RequiredCommand(t *testing.T) {
 	testRun(t, cases)
 }
 
+/*
 func TestUserController_CalledCreate(t *testing.T) {
 	cases := []tCase{
 		{"create user successfully",
@@ -120,7 +122,6 @@ func TestUserController_CalledCreate(t *testing.T) {
 	testRun(t, cases)
 }
 
-/*
 func TestUserController_CalledRemove(t *testing.T) {
 	cases := []testCase{
 		{"user remove successfully",

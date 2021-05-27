@@ -37,13 +37,10 @@ func (s *userController) Handler() *cobra.Command {
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				// Error コードを返す
-				err := errors.New(
+				return errors.New(
 					codes.NotEnoughArgument,
 					"Required target sub command",
 				)
-				fmt.Printf("%v", err.Code())
-				fmt.Printf("%#v", err)
-				return err
 			}
 			return nil
 		},

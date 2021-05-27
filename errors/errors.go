@@ -9,7 +9,7 @@ import (
 	"anemone/codes"
 )
 
-type AnemoneError interface {
+type Error interface {
 	Code() codes.Code
 	Error() string
 }
