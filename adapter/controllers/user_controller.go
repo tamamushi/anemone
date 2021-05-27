@@ -3,12 +3,13 @@
 package controllers
 
 import (
-	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 
 	"anemone/application"
 	"anemone/application/usecase"
+	"anemone/codes"
+	"anemone/errors"
 )
 
 type UserController interface {
@@ -36,7 +37,8 @@ func (s *userController) Handler() *cobra.Command {
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				// Error コードを返す
-				return errors.New("Required target sub command")
+				fmt.Printf("%s", codes.NotEnoughArgument)
+				return errors.New(codes.NotEnoughArgument, "Required target sub command")
 			}
 			return nil
 		},
