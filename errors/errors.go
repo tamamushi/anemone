@@ -22,6 +22,10 @@ func New(c codes.Code, msg string) error {
 	return &structError{code: c, err: xerrors.New(msg)}
 }
 
+func Messagef(msg string, a ...interface{}) string {
+	return fmt.Sprintf(msg, a...)
+}
+
 func Code(err error) codes.Code {
 	if e, ok := err.(*structError); ok {
 		return e.code

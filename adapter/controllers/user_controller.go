@@ -5,6 +5,7 @@ package controllers
 import (
 	"github.com/spf13/cobra"
 
+	"anemone/adapter/helper"
 	"anemone/application"
 	"anemone/application/usecase"
 	"anemone/codes"
@@ -59,7 +60,7 @@ func (s *userController) Handler() *cobra.Command {
 			default:
 				return errors.New(
 					codes.UnSupportedMethod,
-					fmt.Sprintf("UnSupported called method: %s", args[0]),
+					errors.Messagef("UnSupported called method: %s", args[0]),
 				)
 			}
 			return nil
