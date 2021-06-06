@@ -4,21 +4,20 @@ package gateway
 
 import (
 	"bytes"
-	"io"
 )
 
 type IResponse interface {
-	Buffer() io.Writer
+	Buffer() *bytes.Buffer
 }
 
 type response struct {
-	writer io.Writer
+	stringBuffer *bytes.Buffer
 }
 
 func NewResponse() IResponse {
 	return &response{new(bytes.Buffer)}
 }
 
-func (r *response) Buffer() io.Writer {
-	return r.writer
+func (r *response) Buffer() *bytes.Buffer {
+	return r.stringBuffer
 }

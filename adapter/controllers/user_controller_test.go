@@ -19,7 +19,7 @@ import (
 )
 
 type gatewayMock struct {
-	gateway.IGateway
+	gateway.IResponse
 }
 
 type responseMock struct {
@@ -134,7 +134,7 @@ func SetCommand(s string) option {
 
 var index = 0
 
-func SetupUserControllerTest(t *testing.T, tt *tCase) (*cobra.Command, *bytes.Buffer) {
+func SetupUserControllerTest(t *testing.T, tt *tCase) *cobra.Command {
 
 	// ユースケースの準備
 	usecase := &userUseCaseMock{}
@@ -158,8 +158,6 @@ func SetupUserControllerTest(t *testing.T, tt *tCase) (*cobra.Command, *bytes.Bu
 		SilenceUsage: true,
 	}
 	cmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	buffer := &bytes.Buffer{}
-	cmd.SetOutput(buffer)
 
 	// rootcmdへコマンドコントローラーを登録
 	cmd.AddCommand(controller.Handler())
@@ -173,7 +171,7 @@ func SetupUserControllerTest(t *testing.T, tt *tCase) (*cobra.Command, *bytes.Bu
 	}
 
 	cmd.SetArgs(append([]string{"user"}, args.GetArgString()...))
-	return cmd, buffer
+	return cmd
 }
 
 func testRun(t *testing.T, cases []*tCase) {
@@ -181,9 +179,9 @@ func testRun(t *testing.T, cases []*tCase) {
 		t.Run(tt.caseName, func(t *testing.T) {
 			index++
 			t.Logf(fmt.Sprintf("[%03d]\x1b[1m%s\x1b[0m", index, tt.testName))
-			cmd, buf := SetupUserControllerTest(t, tt)
+			cmd := SetupUserControllerTest(t, tt)
 			err := cmd.Execute()
-			t.Logf("　　\x1b[1mResult:\x1b[0m %s", buf.String())
+			t.Logf("　　\x1b[1mResult:\x1b[0m %s", .String())
 
 			if err, ok := err.(errors.Errors); ok {
 				c := errors.Code(err)

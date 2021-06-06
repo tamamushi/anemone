@@ -85,7 +85,7 @@ func (s *userController) Handler() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.SetOutput(s.response.Buffer)
+	cmd.SetOutput(s.response.Buffer())
 	cmd.Flags().String("data", "", "Your name")
 	cmd.Flags().String("id", "", "Your name")
 	return cmd
