@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"anemone/adapter/gateway"
+	_ "anemone/adapter/handler"
 	"anemone/application"
 	"anemone/application/usecase"
 	"anemone/codes"
@@ -15,11 +16,6 @@ import (
 // UserController のinterface定義
 type UserController interface {
 	Handler() *cobra.Command
-	Create() error
-	Remove(id string) error
-	Update() error
-	FindById(id string) error
-	Finds() error
 }
 
 type userController struct {
@@ -39,9 +35,6 @@ func init() {
 	blder.AddCommand(controller.Handler())
 }
 
-func (s *userController) () *cobra.Command {
-}
-
 func (s *userController) Handler() *cobra.Command {
 
 	cmd := &cobra.Command{
@@ -55,49 +48,14 @@ func (s *userController) Handler() *cobra.Command {
 					"Required target sub command",
 				)
 			}
-			switch args[0] {
-			case "remove", "findbyid":
-				id, _ := cmd.Flags().GetString("id")
-				if len(id) < 1 {
-					return errors.New(
-						codes.NotEnoughArgument,
-						"Need to specified \x1b[3mID\x1b[0m",
-					)
-				}
-			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			//name, err := cmd.Flags().GetString("data")
-
-			switch args[0] {
-			case "create":
-				return s.Create()
-			case "remove":
-				id, _ := cmd.Flags().GetString("id")
-				err := s.Remove(id)
-				if err != nil {
-					return err
-				}
-				cmd.Printf("%s", id)
-			case "update":
-				return s.Update()
-			case "findbyid":
-				id, _ := cmd.Flags().GetString("id")
-				err := s.FindById(id)
-				if err != nil {
-					return err
-				}
-			default:
-				return errors.New(
-					codes.UnSupportedMethod,
-					errors.Messagef("UnSupported called method: %s", args[0]),
-				)
-			}
-			return nil
+			return errors.New(
+				codes.UnSupportedMethod,
+				errors.Messagef("UnSupported called method: %s", args[0]),
+			)
 		},
 	}
-	cmd.Flags().String("data", "", "Your name")
-	cmd.Flags().String("id", "", "Your name")
 	return cmd
 }
