@@ -1,13 +1,20 @@
 /* vim: set ts=4 sw=4: */
 
+/*
+Controllers は外界からのインプットの内側へのルーティング、
+内側からの外界へのレスポンスを担います。
+CleanArchitectureのInterface Adaptersにおける振る舞いを
+実装しています。
+*/
 package controllers
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
-	//_ "anemone/adapter/handler"
+	_ "anemone/adapter/handler"
 	"anemone/adapter/helper"
 	"anemone/application/usecase"
 	"anemone/codes"
@@ -21,17 +28,21 @@ type UserController interface {
 
 type controller struct {
 	interactor usecase.IUserUseCase
-	blder      helper.Builder
 }
 
 func NewUserController(u usecase.IUserUseCase) UserController {
-	return &controller{u, helper.GetBuilderInstance("user")}
+	return &controller{u}
 }
 
-func init() {
-	blder := helper.GetBuilderInstance("root")
+var commandBuilder = helper.GetBuilderInstance
 
-	fmt.Printf("%#v\n", blder)
+func init() {
+	blder, err := commandBuilder("root")
+	if err != nil {
+		msg := "Failed to building Root command group (%s)"
+		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
+		os.Exit(1)
+	}
 	usecase := usecase.NewUserInteractor()
 	controller := NewUserController(usecase)
 	blder.AddCommand(controller.Handler())
@@ -41,7 +52,7 @@ func (s *controller) Handler() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "user",
-		Short: "A brief description of your command",
+		Short: "User handle command group",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				// Error コードを返す
@@ -59,8 +70,13 @@ func (s *controller) Handler() *cobra.Command {
 			)
 		},
 	}
-	fmt.Printf("%#v\n", s.blder)
-	//subs := s.blder.GetCommands()
-	//cmd.AddCommand(subs...)
+
+	blder, err := commandBuilder("user")
+	if err != nil {
+		msg := "Failed to building User command group (%s)"
+		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
+		os.Exit(1)
+	}
+	cmd.AddCommand(blder.GetCommands()...)
 	return cmd
 }

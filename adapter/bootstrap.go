@@ -10,7 +10,6 @@ import (
 
 	_ "anemone/adapter/controllers"
 	"anemone/adapter/helper"
-	"anemone/application"
 )
 
 type Response struct {
@@ -36,7 +35,7 @@ func Bootstrap() {
 	buffer := &bytes.Buffer{}
 	cmd.SetOutput(buffer)
 
-	blder := application.GetBuilderInstance()
+	blder, _ := helper.GetBuilderInstance("root")
 	cmd.AddCommand(blder.GetCommands()...)
 
 	args := helper.NewArgumentBuilder()

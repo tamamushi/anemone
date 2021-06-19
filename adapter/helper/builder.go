@@ -3,6 +3,7 @@
 package helper
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/spf13/cobra"
@@ -17,14 +18,16 @@ type builder struct {
 	commands []*cobra.Command
 }
 
-var instance = map[string]Builder{}
-var once sync.Once
+var once = sync.Map{}
 
-func GetBuilderInstance(s string) Builder {
-	once.Do(func() {
-		instance[s] = &builder{}
-	})
-	return instance[s]
+func GetBuilderInstance(s string) (Builder, error) {
+	instance, _ := once.LoadOrStore(s, &builder{})
+	if instance, ok := instance.(Builder); ok {
+		//fmt.Printf("%s : %p [%s] \n", s, instance, loaded)
+		return instance, nil
+	}
+	msg := "Can't load instance.(%s : %p)\n"
+	return nil, fmt.Errorf(msg, s, instance)
 }
 
 func (s *builder) AddCommand(cmd *cobra.Command) {

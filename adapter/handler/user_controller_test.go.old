@@ -1,35 +1,75 @@
 /* vim: set ts=4 sw=4: */
 
-package controllers_test
+package handler_test
 
 import (
 	"bytes"
 	"fmt"
 	"testing"
 
-	"anemone/test"
 	"github.com/spf13/cobra"
 
-	_ "anemone/adapter/handler"
-
 	"anemone/adapter/controllers"
-	//	"anemone/adapter/helper"
+	"anemone/adapter/gateway"
+	"anemone/adapter/helper"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
-	//	"anemone/model"
+	"anemone/model"
 )
+
+type gatewayMock struct {
+	gateway.IResponse
+}
+
+type responseMock struct {
+	gateway.IResponse
+}
 
 type userUseCaseMock struct {
 	usecase.IUserUseCase
+	MockCreate   func()
+	MockRemove   func(id string) error
+	MockUpdate   func()
+	MockFindById func(id string) (*model.User, error)
+	MockFinds    func()
+}
+
+func (m *userUseCaseMock) Create() {
+	m.MockCreate()
+}
+func (m *userUseCaseMock) Remove(id string) error {
+	return m.MockRemove(id)
+}
+func (m *userUseCaseMock) Update() {
+	m.MockUpdate()
+}
+func (m *userUseCaseMock) FindById(id string) (*model.User, error) {
+	return m.MockFindById(id)
+}
+func (m *userUseCaseMock) Finds() {
+	m.MockFinds()
+}
+
+type tMethod struct {
+	Create   func()
+	Remove   func(id string) error
+	Update   func()
+	FindById func(id string) (*model.User, error)
+	Finds    func()
+}
+
+type tArgument struct {
+	Name  string
+	Value string
 }
 
 type tCase struct {
-	caseName   string
-	testName   string
-	subCommand string
-	tArgument  *test.TestArgument
-	//	tMethod       tMethod
+	caseName      string
+	testName      string
+	subCommand    string
+	tArgument     *tArgument
+	tMethod       tMethod
 	expectCode    codes.Code
 	expectCodeMsg string
 	expected      string
@@ -43,13 +83,25 @@ func Case(title string, testName string, opts ...option) *tCase {
 		caseName:  title,
 		testName:  testName,
 		tArgument: nil,
+		tMethod: tMethod{
+			Create:   func() { return },
+			Remove:   func(id string) error { return nil },
+			Update:   func() { return },
+			FindById: func(id string) (*model.User, error) { return nil, nil },
+			Finds:    func() { return },
+		},
 	}
 	for _, opt := range opts {
 		opt(tcase)
 	}
 	return tcase
 }
-func SetArgument(t *test.TestArgument) option {
+func SetMockUseCase(t tMethod) option {
+	return func(tc *tCase) {
+		tc.tMethod = t
+	}
+}
+func SetArgument(t *tArgument) option {
 	return func(tc *tCase) {
 		tc.tArgument = t
 	}
@@ -86,15 +138,38 @@ func SetupUserControllerTest(t *testing.T, tt *tCase) *cobra.Command {
 
 	// ユースケースの準備
 	usecase := &userUseCaseMock{}
+	usecase.MockCreate = tt.tMethod.Create
+	usecase.MockRemove = tt.tMethod.Remove
+	usecase.MockUpdate = tt.tMethod.Update
+	usecase.MockFindById = tt.tMethod.FindById
+	usecase.MockFinds = tt.tMethod.Finds
+
+	// ゲートウェイの準備
+	gateway := &gatewayMock{}
 
 	// コントローラーの準備
-	controller := controllers.NewUserController(usecase)
+	controller := controllers.NewUserController(usecase, gateway)
 
-	// Rootcmdの構築と取得
-	cmd, args := test.SetupRootCMD(tt.subCommand, tt.tArgument)
+	cmd := &cobra.Command{
+		Use:   "anemone",
+		Short: "A brief description of your application",
 
-	// Rootcmdへコマンドコントローラーを登録
+		// Usageは出さない
+		SilenceUsage: true,
+	}
+	cmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	// rootcmdへコマンドコントローラーを登録
 	cmd.AddCommand(controller.Handler())
+
+	args := helper.NewArgumentBuilder()
+	if len(tt.subCommand) != 0 {
+		args.AddCommand(tt.subCommand)
+	}
+	if tt.tArgument != nil {
+		args.AddArgs(tt.tArgument.Name, tt.tArgument.Value)
+	}
+
 	cmd.SetArgs(append([]string{"user"}, args.GetArgString()...))
 	return cmd
 }
@@ -105,19 +180,17 @@ func testRun(t *testing.T, cases []*tCase) {
 			index++
 			t.Logf(fmt.Sprintf("[%03d]\x1b[1m%s\x1b[0m", index, tt.testName))
 			cmd := SetupUserControllerTest(t, tt)
-			buf := new(bytes.Buffer)
-			cmd.SetOutput(buf)
 			err := cmd.Execute()
-			//t.Logf("　　\x1b[1mResult:\x1b[0m %s", )
+			t.Logf("　　\x1b[1mResult:\x1b[0m %s", .String())
 
 			if err, ok := err.(errors.Errors); ok {
 				c := errors.Code(err)
 				if c == tt.expectCode {
-					//ExpectCodeが返却されれば期待通り
+					//NotEnoughArgumentが返却されれば期待通り
 					word := fmt.Sprintf("\x1b[32mOK\x1b[0m")
 					t.Logf("　　[%s] %s", word, tt.expectCodeMsg)
 				} else {
-					//ExpectCode以外が返却されたらおかしい
+					//NotEnoughArgument以外が返却されたらおかしい
 					word := fmt.Sprintf("\x1b[31mNG\x1b[0m")
 					t.Errorf("　　[%s] %s But returned %s", word, tt.expectCodeMsg, c)
 				}
@@ -157,7 +230,6 @@ func TestUserControllerCalledHandler(t *testing.T) {
 	testRun(t, cases)
 }
 
-/*
 func TestUserControllerCalledCreate(t *testing.T) {
 	title := fmt.Sprintf("[Called Create Method Behavior]")
 	fmt.Printf("\n")
@@ -358,4 +430,3 @@ func TestUserControllerCalledFinds(t *testing.T) {
 	}
 	testRun(t, cases)
 }
-*/

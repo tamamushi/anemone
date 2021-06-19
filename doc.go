@@ -1,5 +1,16 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+/*
+Anemone はAPIやコマンドライン等の命令（コマンド）型処理に対する
+実装の枠組みを提供するフレームワークです。
 
+CONCEPT
+
+- 可能な限り1コマンド対1ファイルとなるような1対1の仕様
+
+- 可能な限りVIPER（CA）構造のコーディングルールに倣う
+
+*/
 package anemone
+
+import (
+	"anemone/adapter"
+)

@@ -35,7 +35,8 @@ func (s *testController) Handler() *cobra.Command {
 }
 
 func init() {
-	blder := helper.GetBuilderInstance("root")
+	blder, _ := helper.GetBuilderInstance("root")
+
 	usecase := usecase.NewUserInteractor()
 	controller := newTestController(usecase)
 	blder.AddCommand(controller.Handler())
