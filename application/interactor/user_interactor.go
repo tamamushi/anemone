@@ -1,37 +1,32 @@
 /* vim: set ts=4 sw=4: */
 
-package usecase
+package interactor
 
 import (
-	"anemone/model"
+	"anemone/application/usecase"
 )
-
-type IUserUseCase interface {
-	Create()
-	Remove(id string) error
-	Update()
-	FindById(id string) (*model.User, error)
-	Finds()
-}
 
 type userInteractor struct {
 }
 
-func NewUserInteractor() IUserUseCase {
+func NewUserInteractor() usecase.IUserUseCase {
 	return &userInteractor{}
 }
 
-func (u *userInteractor) Create() {
+func (u *userInteractor) Create() error {
+	return nil
 }
 func (u *userInteractor) Remove(id string) error {
 	return nil
 }
-func (u *userInteractor) Update() {
+func (u *userInteractor) Update() error {
+	return nil
 }
-func (u *userInteractor) FindById(id string) (*model.User, error) {
-	return nil, nil
+func (u *userInteractor) FindById(id string) error {
+	return nil
 }
-func (u *userInteractor) Finds() {
+func (u *userInteractor) Finds() error {
+	return nil
 }
 
 /*

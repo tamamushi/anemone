@@ -18,12 +18,13 @@ Anemone is a code base for the lambda function working on the clamshell
 
 ```
 # go get -u github.com/spf13/cobra/cobra
-※ cobraのPATHが通ってる必要があります。
+  cobraのPATHが通ってる必要があります。
   $GOPATH/bin/cobra
 ```
 
 ## How to preview godoc
-godoc -http=:8080 -goroot=/path/to/yourdir/anemone
+godoc -http=xxx.xxx.xxx.xxx:8080 -goroot=/path/to/yourdir/anemone -notes='.*'
+
 
 # Installation
 

@@ -3,12 +3,15 @@
 package test
 
 import (
+	"bytes"
 	"fmt"
+	"testing"
 
 	"github.com/spf13/cobra"
 
 	"anemone/adapter/helper"
 	"anemone/codes"
+	"anemone/errors"
 )
 
 type TestArgument struct {
@@ -42,12 +45,91 @@ func Title(i int, s string) string {
 	return fmt.Sprintf("[%03d]\x1b[1m%s\x1b[0m", i, s)
 }
 
-func Expected(expect string) string {
+func OK() string {
+	return "\x1b[32mOK\x1b[0m"
+}
+func NG() string {
+	return "\x1b[31mNG\x1b[0m"
+}
+
+func ExpectedError(expect string) string {
 	return fmt.Sprintf("　　[\x1b[32mOK\x1b[0m] %s", expect)
 }
 
-func UnExpected(expect string, ret codes.Code) string {
+func UnExpectedError(expect string, ret codes.Code) string {
 	return fmt.Sprintf("　　[\x1b[31mNG\x1b[0m] %s But returned %s", expect, ret)
+}
+
+func ExpectedOperation(expect string) string {
+	return fmt.Sprintf("　 [\x1b[32mOK\x1b[0m] %s", expect)
+}
+
+func UnExpectedOperation(expect string, ret string) string {
+	return fmt.Sprintf("　 [\x1b[31mNG\x1b[0m] %s But returned %s", expect, ret)
+}
+
+var index = 0
+var Buffer *bytes.Buffer
+
+func TestRun(
+	t *testing.T,
+	cases []*TCase,
+	setupfunc func(t *testing.T, tt *TCase) *cobra.Command,
+	testName string,
+) {
+	fmt.Printf("Testing [%s] \n", testName)
+	for _, tt := range cases {
+		t.Run(tt.GetCaseName(), func(t *testing.T) {
+			index++
+			//タイトルをBOLD設定
+			t.Logf(Title(index, tt.GetTestName()))
+
+			cmd := setupfunc(t, tt)
+			//buf := new(bytes.Buffer)
+			Buffer = new(bytes.Buffer)
+			cmd.SetOut(Buffer)
+			cmd.SetErr(Buffer)
+			err := cmd.Execute()
+			result := "NOOP"
+
+			if tt.GetExpectCodeMsg() != "" {
+				if err, ok := err.(errors.Errors); ok {
+					// エラーの場合、エラーコードにより正しさを判定
+					c := errors.Code(err)
+					if c == tt.GetExpectCode() {
+						//ExpectCodeが返却されれば期待通り
+						t.Logf(ExpectedError(tt.GetExpectCodeMsg()))
+						result = OK()
+					} else {
+						//ExpectCode以外が返却されたらおかしい
+						t.Errorf(UnExpectedError(tt.GetExpectCodeMsg(), c))
+						result = NG()
+					}
+				} else {
+					//ExpectCodeMsgのテストなのにNilが返却されたらおかしい
+					t.Errorf(UnExpectedError(tt.GetExpectCodeMsg(), "Nil"))
+					result = NG()
+				}
+			} else {
+				// nil が返却された場合
+				if err == nil && tt.GetExpected() == "OK" {
+					// 正常動作完了
+					t.Logf(ExpectedOperation(tt.GetExpectedMsg()))
+					fmt.Fprintf(Buffer, "正常動作\n")
+					result = OK()
+				} else {
+					c := Buffer.String()
+					t.Errorf(UnExpectedOperation(tt.GetExpectedMsg(), c))
+					result = NG()
+				}
+			}
+			fmt.Printf("[%03d]:[%s]", index, result)
+			fmt.Printf(" %s", Buffer)
+			if Buffer.String() == "" {
+				fmt.Printf("\n")
+			}
+		})
+	}
 }
 
 type TCase struct {
@@ -111,7 +193,8 @@ func SetCommand(s string) option {
 func (t *TCase) GetArgument() *TestArgument {
 	return t.tArgument
 }
-func SetArgument(t *TestArgument) option {
+func SetArgument(k string, v string) option {
+	t := &TestArgument{k, v}
 	return func(tc *TCase) {
 		tc.tArgument = t
 	}
@@ -154,5 +237,10 @@ func (t *TCase) GetExpected() string {
 func SetExpected(t string) option {
 	return func(tc *TCase) {
 		tc.expected = t
+	}
+}
+func SetExpectedNil() option {
+	return func(tc *TCase) {
+		tc.expected = "OK"
 	}
 }

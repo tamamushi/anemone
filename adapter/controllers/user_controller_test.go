@@ -3,7 +3,6 @@
 package controllers_test
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"testing"
@@ -15,10 +14,7 @@ import (
 
 	"anemone/adapter/controllers"
 	"anemone/adapter/helper"
-	"anemone/application/usecase"
 	"anemone/codes"
-	"anemone/errors"
-	//	"anemone/model"
 )
 
 func Example() {
@@ -31,24 +27,14 @@ func Example() {
 		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
 		os.Exit(1)
 	}
-	usecase := usecase.NewUserInteractor()
-	controller := controllers.NewUserController(usecase)
+	controller := controllers.NewUserController()
 	blder.AddCommand(controller.Handler())
 }
 
-type userUseCaseMock struct {
-	usecase.IUserUseCase
-}
-
-var index = 0
-
-func SetupControllerTest(t *testing.T, tt *test.TCase) *cobra.Command {
-
-	// ユースケースの準備
-	usecase := &userUseCaseMock{}
+func SetupUserControllerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 
 	// コントローラーの準備
-	controller := controllers.NewUserController(usecase)
+	controller := controllers.NewUserController()
 
 	// Rootcmdの構築と取得
 	cmd, args := test.SetupRootCMD(tt)
@@ -57,40 +43,6 @@ func SetupControllerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	cmd.AddCommand(controller.Handler())
 	cmd.SetArgs(append([]string{"user"}, args.GetArgString()...))
 	return cmd
-}
-
-func testRun(t *testing.T, cases []*test.TCase) {
-	for _, tt := range cases {
-		t.Run(tt.GetCaseName(), func(t *testing.T) {
-			index++
-			t.Logf(test.Title(index, tt.GetTestName()))
-			cmd := SetupControllerTest(t, tt)
-			buf := new(bytes.Buffer)
-			cmd.SetOutput(buf)
-			err := cmd.Execute()
-			//t.Logf("　　\x1b[1mResult:\x1b[0m %s", )
-
-			if err, ok := err.(errors.Errors); ok {
-				c := errors.Code(err)
-				if c == tt.GetExpectCode() {
-					//ExpectCodeが返却されれば期待通り
-					t.Logf(test.Expected(tt.GetExpectCodeMsg()))
-				} else {
-					//ExpectCode以外が返却されたらおかしい
-					t.Errorf(test.UnExpected(tt.GetExpectCodeMsg(), c))
-				}
-			} else {
-				c := buf.String()
-				if c != tt.GetExpected() || c == "" {
-					word := fmt.Sprintf("\x1b[31mNG\x1b[0m")
-					t.Errorf("　　[%s] %s hoge returned %s", word, tt.GetExpectedMsg(), c)
-				} else {
-					word := fmt.Sprintf("\x1b[32mOK\x1b[0m")
-					t.Logf("　　[%s] %s", word, tt.GetExpectedMsg())
-				}
-			}
-		})
-	}
 }
 
 func TestUserControllerCalled_Handler(t *testing.T) {
@@ -116,5 +68,5 @@ func TestUserControllerCalled_Handler(t *testing.T) {
 			test.SetExpectCode(codes.UnSupportedMethod),
 		),
 	}
-	testRun(t, cases)
+	test.TestRun(t, cases, SetupUserControllerTest, "UserController")
 }

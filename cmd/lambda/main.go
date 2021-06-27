@@ -3,10 +3,10 @@
 package main
 
 import (
-	"anemone/cmd"
+	"anemone/adapter"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
 func main() {
-	lambda.Start(cmd.Handler)
+	lambda.Start(adapter.Bootstrap)
 }

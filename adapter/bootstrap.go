@@ -40,6 +40,14 @@ func Bootstrap() {
 	buffer := &bytes.Buffer{}
 	cmd.SetOutput(buffer)
 
+	// DBインスタンスをSingletonで登録
+	// Controllerとして分けられた各コマンドは
+	// 登録されたDBインスタンスのポインタを使って
+	// 自分の子ハンドラに設定する。
+
+	// Controllerは取り込んだDBインスタンスを
+	// 各子ハンドラへusecase設定と共に設定する
+
 	blder, _ := helper.GetBuilderInstance("root")
 	cmd.AddCommand(blder.GetCommands()...)
 
@@ -49,10 +57,11 @@ func Bootstrap() {
 	jsond := "{ \"id\": \"xxxx-xxxx-xxxx-xxx\", \"email\": \"t.koube.cp@gmail.com\" }"
 	cmd.SetArgs([]string{"user", "create", "--data", jsond})
 	//fmt.Printf("%s", []string{"user", "create", "--data", jsond})
+
 	cobra.CheckErr(cmd.Execute())
+
 	fmt.Print(buffer)
 }
 
 func initConfig() {
-
 }

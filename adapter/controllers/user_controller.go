@@ -1,11 +1,5 @@
 /* vim: set ts=4 sw=4: */
 
-/*
-Controllers は外界からのインプットの内側へのルーティング、
-内側からの外界へのレスポンスを担います。
-CleanArchitectureのInterface Adaptersにおける振る舞いを
-実装しています。
-*/
 package controllers
 
 import (
@@ -16,14 +10,17 @@ import (
 
 	_ "anemone/adapter/handler"
 	"anemone/adapter/helper"
-	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
 )
 
 // TODO(koube):
+// 2021/06/27 UserController
 // GetBuilderInstanceに絡む部分のテストが未実施。正常なBuilderインスタンスが
 // 返って来なかった場合はエラーが反る。
+//
+// HISTORY(koube):
+// 2021/06/27 UserController 新規作成
 
 // Userコマンドを構築する起点になるController
 // 実行可能なコマンドは以下がある
@@ -41,13 +38,12 @@ type IUserController interface {
 	Handler() *cobra.Command
 }
 
-type controller struct {
-	interactor usecase.IUserUseCase
+type userController struct {
 }
 
 // UserCoontroller のコンストラクタ
-func NewUserController(u usecase.IUserUseCase) IUserController {
-	return &controller{u}
+func NewUserController() IUserController {
+	return &userController{}
 }
 
 var commandBuilder = helper.GetBuilderInstance
@@ -59,12 +55,11 @@ func init() {
 		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
 		os.Exit(1)
 	}
-	usecase := usecase.NewUserInteractor()
-	controller := NewUserController(usecase)
+	controller := NewUserController()
 	blder.AddCommand(controller.Handler())
 }
 
-func (s *controller) Handler() *cobra.Command {
+func (s *userController) Handler() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "user",
@@ -87,12 +82,24 @@ func (s *controller) Handler() *cobra.Command {
 		},
 	}
 
+	// 子ハンドラ達を取り出す。
+	// usecaseにDBを設定し、子ハンドラにわたす。
+	// DBインスタンスとusecaseを持った子ハンドラの
+	// cobraインスタンスをAddCommandで登録する
+
 	blder, err := commandBuilder("user")
 	if err != nil {
 		msg := "Failed to building User command group (%s)"
 		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
 		os.Exit(1)
 	}
+
+	// for _, handler := range blder.GetCommands() {
+	//		s.infra
+	//		handler.SetUseCase(usecase)
+	// 		cmd.AddCommand(handler.Habdle())
+	//}
+
 	cmd.AddCommand(blder.GetCommands()...)
 	return cmd
 }

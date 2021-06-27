@@ -13,23 +13,23 @@ import (
 	"anemone/codes"
 )
 
-func SetupCreateHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
+func SetupRemoveHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 
 	// ユースケースの準備
 	usecase := test.NewUserUseCaseMock()
 	method, _ := tt.GetMethod()
 	inter, ok := method.(*test.UserUseCaseMethod)
 	if ok {
-		usecase.MockCreate = inter.Create
+		usecase.MockRemove = inter.Remove
 	} else {
-		usecase.MockCreate = func() error { return nil }
+		usecase.MockRemove = func(id string) error { return nil }
 	}
 
 	// コントローラーの準備
 	controller := test.NewUserControllerMock()
 
 	// ハンドラの準備
-	userHandler := handler.NewUserCreateHandler(usecase)
+	userHandler := handler.NewUserRemoveHandler(usecase)
 
 	// Rootcmdの構築と取得
 	cmd, args := test.SetupRootCMD(tt)
@@ -44,8 +44,8 @@ func SetupCreateHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	return cmd
 }
 
-// Test User Create Handler
-func TestUserCreateHandlerCalled_Handle(t *testing.T) {
+// Test User Remove Handler
+func TestUserRemoveHandlerCalled_Handle(t *testing.T) {
 	title := fmt.Sprintf("[Validation Behavior]")
 	fmt.Println()
 	cases := []*test.TCase{
@@ -53,51 +53,56 @@ func TestUserCreateHandlerCalled_Handle(t *testing.T) {
 		test.Case(
 			title,
 			"Test not enough argument.",
-			test.SetExpectCodeMsg("Return code expected NotEnoughArgument."),
-			test.SetCommand("create"),
+			test.SetCommand("remove"),
 			test.SetExpectCode(codes.NotEnoughArgument),
+			test.SetExpectCodeMsg("Return code expected NotEnoughArgument."),
 		),
-		// 引数のフォーマットが不正な場合はエラー
+		// 引数のidが指定されたフォーマットじゃない場合はエラー
 		test.Case(
 			title,
 			"Test argument statement incorrect format.",
-			test.SetCommand("create"),
-			test.SetArgument("data", "hogehoge"),
+			test.SetCommand("remove"),
+			test.SetArgument("id", "12"),
+			test.SetExpectCode(codes.InvalidArgument),
+			test.SetExpectCodeMsg("Return code expected InvalidArgument."),
+		),
+		// 引数のidが指定されたキャラクタセットじゃなければエラー
+		test.Case(
+			title,
+			"Test argument statement use incorrect character.",
+			test.SetCommand("remove"),
+			test.SetArgument("id", "1234#-567%8-1..5-6**90"),
 			test.SetExpectCode(codes.InvalidArgument),
 			test.SetExpectCodeMsg("Return code expected InvalidArgument."),
 		),
 	}
 	title = fmt.Sprintf("[Processing Behavior]")
 	cases = append(cases, []*test.TCase{
-		// 作成処理が正常終了
+		// 削除処理が正常終了
 		test.Case(
 			title,
 			"Test normaly correct operation.",
-			test.SetCommand("create"),
-			test.SetArgument("data", "hogehoge"),
+			test.SetCommand("remove"),
+			test.SetArgument("id", "1234-A78B-12ID-6789"),
 			test.SetMethod(
 				test.GetUserUseCaseMethodStruct().
-					SetCreate(func() error {
-						fmt.Fprint(
-							test.Buffer,
-							"テストは通るが仕様が確定していない為本来はNG ",
-						)
+					SetRemove(func(id string) error {
 						return nil
 					},
 					),
 			),
 			test.SetExpectedNil(),
-			test.SetExpectedMsg("Expected operation Successfully."),
+			test.SetExpectedMsg("Expected operation Successfully"),
 		),
-		// 作成処理が異常終了
+		// 削除処理が異常終了
 		test.Case(
 			title,
 			"Test return internal server error.",
-			test.SetCommand("create"),
-			test.SetArgument("data", "hogehoge"),
+			test.SetCommand("remove"),
+			test.SetArgument("id", "1234-A78B-12ID-6789"),
 			test.SetMethod(
 				test.GetUserUseCaseMethodStruct().
-					SetCreate(func() error {
+					SetRemove(func(id string) error {
 						return fmt.Errorf("Mocking Dummy Error")
 					},
 					),
@@ -106,5 +111,5 @@ func TestUserCreateHandlerCalled_Handle(t *testing.T) {
 			test.SetExpectCodeMsg("Return code expected InternalServerError."),
 		),
 	}...)
-	test.TestRun(t, cases, SetupCreateHandlerTest, "UserCreateHandler")
+	test.TestRun(t, cases, SetupRemoveHandlerTest, "UserRemoveHandler")
 }

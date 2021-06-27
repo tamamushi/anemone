@@ -1,7 +1,7 @@
 /* vim: set ts=4 sw=4: */
 /*
-adapter/handler/user_create_handler.go
-UserCreateHandler
+adapter/handler/user_update_handler.go
+UserUpdateHandler
 */
 
 package handler
@@ -18,26 +18,27 @@ import (
 )
 
 // TODO(koube):
-// 2021/06/27 UserCreateHandler
+// 2021/06/27 UserUpdateHandler
 // 引数が指定されたフォーマットじゃない場合はエラーのバリデーションが未実装
 //
-// 2021/06/27 UserCreateHandler
+// 2021/06/27 UserUpdateHandler
 // 引数をInteractorにデータとして渡す方式が固まってない。その為引渡処理が未実装
 //
+//
 // HISTORY(koube):
-// 2021/06/27 UserCreateHandler 新規作成
+// 2021/06/27 UserUpdateHandler 新規作成
 
-type UserCreateHandler interface {
+type UserUpdateHandler interface {
 	Handle() *cobra.Command
-	Create() error
+	Update() error
 }
 
-type userCreateHandler struct {
+type userUpdateHandler struct {
 	interactor usecase.IUserUseCase
 }
 
-func NewUserCreateHandler(u usecase.IUserUseCase) UserCreateHandler {
-	return &userCreateHandler{u}
+func NewUserUpdateHandler(u usecase.IUserUseCase) UserUpdateHandler {
+	return &userUpdateHandler{u}
 }
 
 func init() {
@@ -48,15 +49,15 @@ func init() {
 		os.Exit(1)
 	}
 	usecase := usecase.NewUserInteractor()
-	handler := NewUserCreateHandler(usecase)
+	handler := NewUserUpdateHandler(usecase)
 	blder.AddCommand(handler.Handle())
 }
 
-func (s *userCreateHandler) Handle() *cobra.Command {
+func (s *userUpdateHandler) Handle() *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "User Create Command",
+		Use:   "update",
+		Short: "User Update Command",
 		Args: func(cmd *cobra.Command, args []string) error {
 			data, _ := cmd.Flags().GetString("data")
 			// id が指定されていなければエラー
@@ -70,7 +71,7 @@ func (s *userCreateHandler) Handle() *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, _ = cmd.Flags().GetString("data")
-			err := s.Create()
+			err := s.Update()
 			if err != nil {
 				return err
 			}
@@ -81,9 +82,9 @@ func (s *userCreateHandler) Handle() *cobra.Command {
 	return cmd
 }
 
-func (s *userCreateHandler) Create() error {
+func (s *userUpdateHandler) Update() error {
 
-	err := s.interactor.Create()
+	err := s.interactor.Update()
 	if err != nil {
 		return errors.Newf(
 			codes.InternalServerError,
