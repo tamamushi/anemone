@@ -7,11 +7,8 @@ UserRemoveHandler
 package handler
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
-	"os"
 
-	"anemone/adapter/helper"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -26,31 +23,39 @@ import (
 //
 // HISTORY(koube):
 // 2021/06/27 UserRemoveHandler 新規作成
+// 2021/07/05 UserRemoveHandler UseCaseSetterとCommandConstructorに対応
 
 // UserRemoveHanlder のinterface定義
 type UserRemoveHanlder interface {
-	Handle() *cobra.Command
+	Handler
+	SetUseCase(interface{})
 	Remove(id string) error
 }
 
 type userRemoveHandler struct {
 	interactor usecase.IUserUseCase
+	rhandler
 }
 
-func NewUserRemoveHandler(u usecase.IUserUseCase) UserRemoveHanlder {
-	return &userRemoveHandler{u}
+func NewUserRemoveHandler() UserRemoveHanlder {
+	r := &userRemoveHandler{}
+	r.AddSetter("UserUseCase", r.SetUseCase)
+	r.SetHandle(r.Handle)
+	return r
 }
 
 func init() {
-	blder, err := helper.GetBuilderInstance("user")
-	if err != nil {
-		msg := "Failed to building User command group (%s)"
-		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
-		os.Exit(1)
-	}
-	usecase := usecase.NewUserInteractor()
-	handler := NewUserRemoveHandler(usecase)
-	blder.AddCommand(handler.Handle())
+	constructor, err := Constructor("user")
+	FatalConstruction(
+		err,
+		"Failed to building User command group (%s)",
+	)
+	handler := NewUserRemoveHandler()
+	constructor.Register(handler.GetHandle())
+}
+
+func (s *userRemoveHandler) SetUseCase(u interface{}) {
+	s.interactor = u.(usecase.IUserUseCase)
 }
 
 func (s *userRemoveHandler) Handle() *cobra.Command {

@@ -7,24 +7,22 @@ UserController
 package controllers
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
 
-	_ "anemone/adapter/handler"
-	"anemone/adapter/helper"
+	"anemone/adapter/handler"
+	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
 )
 
 // TODO(koube):
 // 2021/06/27 UserController
-// GetBuilderInstanceに絡む部分のテストが未実施。正常なBuilderインスタンスが
+// CommandBuilderに絡む部分のテストが未実施。正常なBuilderインスタンスが
 // 返って来なかった場合はエラーが反る。
 //
 // HISTORY(koube):
 // 2021/06/27 UserController 新規作成
+// 2021/07/05 UserController UseCaseSetterに対応
 
 // Userコマンドを構築する起点になるController
 // 実行可能なコマンドは以下がある
@@ -43,23 +41,22 @@ type IUserController interface {
 }
 
 type userController struct {
+	interactor usecase.IUserUseCase
 }
 
 // UserCoontroller のコンストラクタ
-func NewUserController() IUserController {
-	return &userController{}
+func NewUserController(u usecase.IUserUseCase) IUserController {
+	return &userController{u}
 }
 
-var commandBuilder = helper.GetBuilderInstance
-
 func init() {
-	blder, err := commandBuilder("root")
-	if err != nil {
-		msg := "Failed to building Root command group (%s)"
-		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
-		os.Exit(1)
-	}
-	controller := NewUserController()
+	blder, err := CommandBuilder("root")
+	FatalBuilder(
+		err,
+		"Failed to building Root command group (%s)",
+	)
+	interactor := usecase.NewUserInteractor()
+	controller := NewUserController(interactor)
 	blder.AddCommand(controller.Handler())
 }
 
@@ -90,20 +87,20 @@ func (s *userController) Handler() *cobra.Command {
 	// usecaseにDBを設定し、子ハンドラにわたす。
 	// DBインスタンスとusecaseを持った子ハンドラの
 	// cobraインスタンスをAddCommandで登録する
-
-	blder, err := commandBuilder("user")
-	if err != nil {
-		msg := "Failed to building User command group (%s)"
-		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
-		os.Exit(1)
+	handlers, err := handler.Constructor("user")
+	if ok := handler.FatalConstruction(
+		err,
+		"Failed to building User command group (%s)",
+	); ok {
+		for _, handle := range handlers.Extraction() {
+			for k, v := range handle.GetSetters() {
+				switch k {
+				case "UserUseCase":
+					v(s.interactor)
+				}
+			}
+			cmd.AddCommand(handle.Handle())
+		}
 	}
-
-	// for _, handler := range blder.GetCommands() {
-	//		s.infra
-	//		handler.SetUseCase(usecase)
-	// 		cmd.AddCommand(handler.Habdle())
-	//}
-
-	cmd.AddCommand(blder.GetCommands()...)
 	return cmd
 }

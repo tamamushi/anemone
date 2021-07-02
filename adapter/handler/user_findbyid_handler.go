@@ -7,11 +7,8 @@ UserFindByIdHandler
 package handler
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
-	"os"
 
-	"anemone/adapter/helper"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -26,31 +23,39 @@ import (
 //
 // HISTORY(koube):
 // 2021/06/27 UserFindByIdHandler 新規作成
+// 2021/07/05 UserFindByIdHandler UseCaseSetterとCommandConstructorに対応
 
 // UserFindByIdHandler のinterface定義
 type UserFindByIdHandler interface {
-	Handle() *cobra.Command
+	Handler
+	SetUseCase(interface{})
 	FindById(id string) error
 }
 
 type userFindByIdHandler struct {
 	interactor usecase.IUserUseCase
+	rhandler
 }
 
-func NewUserFindByIdHandler(u usecase.IUserUseCase) UserFindByIdHandler {
-	return &userFindByIdHandler{u}
+func NewUserFindByIdHandler() UserFindByIdHandler {
+	r := &userFindByIdHandler{}
+	r.AddSetter("UserUseCase", r.SetUseCase)
+	r.SetHandle(r.Handle)
+	return r
 }
 
 func init() {
-	blder, err := helper.GetBuilderInstance("user")
-	if err != nil {
-		msg := "Failed to building User command group (%s)"
-		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
-		os.Exit(1)
-	}
-	usecase := usecase.NewUserInteractor()
-	handler := NewUserFindByIdHandler(usecase)
-	blder.AddCommand(handler.Handle())
+	constructor, err := Constructor("user")
+	FatalConstruction(
+		err,
+		"Failed to building User command group (%s)",
+	)
+	handler := NewUserFindByIdHandler()
+	constructor.Register(handler.GetHandle())
+}
+
+func (s *userFindByIdHandler) SetUseCase(u interface{}) {
+	s.interactor = u.(usecase.IUserUseCase)
 }
 
 func (s *userFindByIdHandler) Handle() *cobra.Command {

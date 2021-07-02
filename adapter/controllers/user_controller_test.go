@@ -4,37 +4,22 @@ package controllers_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"anemone/test"
 	"github.com/spf13/cobra"
 
-	_ "anemone/adapter/handler"
-
 	"anemone/adapter/controllers"
-	"anemone/adapter/helper"
 	"anemone/codes"
 )
 
-func Example() {
-	// 初期化サンプル
-	// init()の伝播の中でコマンド構築を行う
-
-	blder, err := helper.GetBuilderInstance("root")
-	if err != nil {
-		msg := "Failed to building Root command group (%s)"
-		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
-		os.Exit(1)
-	}
-	controller := controllers.NewUserController()
-	blder.AddCommand(controller.Handler())
-}
-
 func SetupUserControllerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 
+	// ユースケースの準備
+	interactor := test.NewUserUseCaseMock()
+
 	// コントローラーの準備
-	controller := controllers.NewUserController()
+	controller := controllers.NewUserController(interactor)
 
 	// Rootcmdの構築と取得
 	cmd, args := test.SetupRootCMD(tt)

@@ -29,7 +29,15 @@ func SetupUpdateHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	controller := test.NewUserControllerMock()
 
 	// ハンドラの準備
-	userHandler := handler.NewUserUpdateHandler(usecase)
+	userHandler := handler.NewUserUpdateHandler()
+
+	handle := userHandler.GetHandle()
+	for k, v := range handle.GetSetters() {
+		switch k {
+		case "UserUseCase":
+			v(usecase)
+		}
+	}
 
 	// Rootcmdの構築と取得
 	cmd, args := test.SetupRootCMD(tt)

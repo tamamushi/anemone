@@ -4,7 +4,6 @@ package handler_test
 
 import (
 	"fmt"
-	//	"reflect"
 	"testing"
 
 	"anemone/test"
@@ -31,11 +30,9 @@ func SetupCreateHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 
 	// ハンドラの準備
 	createHandler := handler.NewUserCreateHandler()
-	//createHandler.SetUserUseCase(usecase)
 
 	handle := createHandler.GetHandle()
-	setters := handle.GetSetters()
-	for k, v := range setters {
+	for k, v := range handle.GetSetters() {
 		switch k {
 		case "UserUseCase":
 			v(usecase)

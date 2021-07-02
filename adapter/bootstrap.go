@@ -13,7 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	_ "anemone/adapter/controllers"
+	"anemone/adapter/controllers"
 	"anemone/adapter/helper"
 )
 
@@ -48,19 +48,24 @@ func Bootstrap() {
 	// Controllerは取り込んだDBインスタンスを
 	// 各子ハンドラへusecase設定と共に設定する
 
-	blder, _ := helper.GetBuilderInstance("root")
-	cmd.AddCommand(blder.GetCommands()...)
+	blder, err := controllers.CommandBuilder("root")
+	if ok := controllers.FatalBuilder(
+		err,
+		"Failed to building Root command group (%s)",
+	); ok {
+		cmd.AddCommand(blder.GetCommands()...)
 
-	args := helper.NewArgumentBuilder()
-	args.AddCommand("user", "create")
+		args := helper.NewArgumentBuilder()
+		args.AddCommand("user", "create")
 
-	jsond := "{ \"id\": \"xxxx-xxxx-xxxx-xxx\", \"email\": \"t.koube.cp@gmail.com\" }"
-	cmd.SetArgs([]string{"user", "create", "--data", jsond})
-	//fmt.Printf("%s", []string{"user", "create", "--data", jsond})
+		jsond := "{ \"id\": \"xxxx-xxxx-xxxx-xxx\", \"email\": \"t.koube.cp@gmail.com\" }"
+		cmd.SetArgs([]string{"user", "update", "--data", jsond})
+		//fmt.Printf("%s", []string{"user", "create", "--data", jsond})
 
-	cobra.CheckErr(cmd.Execute())
+		cobra.CheckErr(cmd.Execute())
 
-	fmt.Print(buffer)
+		fmt.Print(buffer)
+	}
 }
 
 func initConfig() {

@@ -7,11 +7,8 @@ UserCreateHandler
 package handler
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
-	"os"
 
-	"anemone/adapter/helper"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -26,12 +23,12 @@ import (
 //
 // HISTORY(koube):
 // 2021/06/27 UserCreateHandler 新規作成
+// 2021/07/05 UserCreateHandler UseCaseSetterとCommandConstructorに対応
 
 type UserCreateHandler interface {
 	Handler
-	Handle() *cobra.Command
 	SetUseCase(interface{})
-	Create() error
+	Create(string) error
 }
 
 type userCreateHandler struct {
@@ -39,24 +36,21 @@ type userCreateHandler struct {
 	rhandler
 }
 
-//func NewUserCreateHandler(u usecase.IUserUseCase) UserCreateHandler {
 func NewUserCreateHandler() UserCreateHandler {
 	r := &userCreateHandler{}
-	r.AddSetter("UserUseCase", r.SetUserUseCase)
+	r.AddSetter("UserUseCase", r.SetUseCase)
 	r.SetHandle(r.Handle)
 	return r
 }
 
 func init() {
-	_, err := helper.GetBuilderInstance("user")
-	//construct := Constructor("user")
-	if err != nil {
-		msg := "Failed to building User command group (%s)"
-		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
-		os.Exit(1)
-	}
-	//handler := NewUserCreateHandler()
-	//construct.register(handler.GetHandle())
+	construct, err := Constructor("user")
+	FatalConstruction(
+		err,
+		"Failed to building User command group (%s)",
+	)
+	handler := NewUserCreateHandler()
+	construct.Register(handler.GetHandle())
 }
 
 func (s *userCreateHandler) SetUseCase(u interface{}) {
@@ -80,8 +74,11 @@ func (s *userCreateHandler) Handle() *cobra.Command {
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, _ = cmd.Flags().GetString("data")
-			err := s.Create()
+			data, err := cmd.Flags().GetString("data")
+			if err != nil {
+				return err
+			}
+			err = s.Create(data)
 			if err != nil {
 				return err
 			}
@@ -92,9 +89,12 @@ func (s *userCreateHandler) Handle() *cobra.Command {
 	return cmd
 }
 
-func (s *userCreateHandler) Create() error {
+func (s *userCreateHandler) Create(_ string) error {
 
-	err := s.interactor.Create()
+	err := s.interactor.Create(
+	//s.prenseter.Input(c)
+	//s.gateway.Output()
+	)
 	if err != nil {
 		return errors.Newf(
 			codes.InternalServerError,

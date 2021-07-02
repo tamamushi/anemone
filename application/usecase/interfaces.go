@@ -2,6 +2,14 @@
 
 package usecase
 
+import (
+	"anemone/application/interactor"
+)
+
+func NewUserInteractor() IUserUseCase {
+	return interactor.NewUserInteractor()
+}
+
 type IUserUseCase interface {
 	Create() error
 	Remove(id string) error

@@ -5,8 +5,6 @@ package test
 import (
 	"anemone/adapter/controllers"
 	"github.com/spf13/cobra"
-	//"anemone/adapter/helper"
-	//"anemone/codes"
 )
 
 type controllerMock struct {

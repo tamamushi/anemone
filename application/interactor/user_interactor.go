@@ -2,26 +2,27 @@
 
 package interactor
 
-/*
 import (
-	"anemone/application/usecase"
+	"fmt"
 )
-*/
 
 type userInteractor struct {
 }
 
-func NewUserInteractor() IUserUseCase {
+func NewUserInteractor() *userInteractor {
 	return &userInteractor{}
 }
 
 func (u *userInteractor) Create() error {
+	fmt.Println("create !")
 	return nil
 }
 func (u *userInteractor) Remove(id string) error {
+	fmt.Println("remove !")
 	return nil
 }
 func (u *userInteractor) Update() error {
+	fmt.Println("update !")
 	return nil
 }
 func (u *userInteractor) FindById(id string) error {

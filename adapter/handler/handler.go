@@ -7,6 +7,7 @@ import (
 )
 
 type Handler interface {
+	Handle() *cobra.Command
 	GetHandle() Handler
 	SetHandle(func() *cobra.Command)
 	AddSetter(string, func(interface{}))
@@ -14,7 +15,7 @@ type Handler interface {
 }
 
 type rhandler struct {
-	Handle     *func() *cobra.Command
+	handle     *func() *cobra.Command
 	interactor map[string]func(interface{})
 }
 
@@ -22,8 +23,12 @@ func (h *rhandler) GetHandle() Handler {
 	return h
 }
 
+func (h *rhandler) Handle() *cobra.Command {
+	return (*h.handle)()
+}
+
 func (h *rhandler) SetHandle(f func() *cobra.Command) {
-	h.Handle = &f
+	h.handle = &f
 }
 
 func (h *rhandler) AddSetter(k string, f func(interface{})) {

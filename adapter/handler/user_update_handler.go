@@ -7,11 +7,8 @@ UserUpdateHandler
 package handler
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
-	"os"
 
-	"anemone/adapter/helper"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -24,33 +21,40 @@ import (
 // 2021/06/27 UserUpdateHandler
 // 引数をInteractorにデータとして渡す方式が固まってない。その為引渡処理が未実装
 //
-//
 // HISTORY(koube):
 // 2021/06/27 UserUpdateHandler 新規作成
+// 2021/07/05 UserUpdateHandler UseCaseSetterとCommandConstructorに対応
 
 type UserUpdateHandler interface {
-	Handle() *cobra.Command
+	Handler
+	SetUseCase(interface{})
 	Update() error
 }
 
 type userUpdateHandler struct {
 	interactor usecase.IUserUseCase
+	rhandler
 }
 
-func NewUserUpdateHandler(u usecase.IUserUseCase) UserUpdateHandler {
-	return &userUpdateHandler{u}
+func NewUserUpdateHandler() UserUpdateHandler {
+	r := &userUpdateHandler{}
+	r.AddSetter("UserUseCase", r.SetUseCase)
+	r.SetHandle(r.Handle)
+	return r
 }
 
 func init() {
-	blder, err := helper.GetBuilderInstance("user")
-	if err != nil {
-		msg := "Failed to building User command group (%s)"
-		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
-		os.Exit(1)
-	}
-	usecase := usecase.NewUserInteractor()
-	handler := NewUserUpdateHandler(usecase)
-	blder.AddCommand(handler.Handle())
+	constructor, err := Constructor("user")
+	FatalConstruction(
+		err,
+		"Failed to building User command group (%s)",
+	)
+	handler := NewUserUpdateHandler()
+	constructor.Register(handler.GetHandle())
+}
+
+func (s *userUpdateHandler) SetUseCase(u interface{}) {
+	s.interactor = u.(usecase.IUserUseCase)
 }
 
 func (s *userUpdateHandler) Handle() *cobra.Command {

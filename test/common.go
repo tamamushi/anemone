@@ -77,7 +77,7 @@ func TestRun(
 	setupfunc func(t *testing.T, tt *TCase) *cobra.Command,
 	testName string,
 ) {
-	fmt.Printf("Testing [%s] \n", testName)
+	fmt.Printf("\x1b[1mTesting [%s] \x1b[0m\n", testName)
 	for _, tt := range cases {
 		t.Run(tt.GetCaseName(), func(t *testing.T) {
 			index++

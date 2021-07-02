@@ -1,39 +1,51 @@
 /* vim: set ts=4 sw=4: */
 
-package helper
+package handler
 
 import (
 	"fmt"
+	"os"
 	"sync"
-
-	"github.com/spf13/cobra"
 )
 
-type Builder interface {
-	AddCommand(cmd *cobra.Command)
-	GetCommands() []*cobra.Command
+type ConstructorInterface interface {
+	Register(Handler)
+	Extraction() []Handler
 }
 
-type builder struct {
-	commands []*cobra.Command
+type constructor struct {
+	handlers []Handler
 }
 
-var once = sync.Map{}
+var onceHandler = sync.Map{}
 
-func GetBuilderInstance(s string) (Builder, error) {
-	instance, _ := once.LoadOrStore(s, &builder{})
-	if instance, ok := instance.(Builder); ok {
-		//fmt.Printf("%s : %p [%s] \n", s, instance, loaded)
-		return instance, nil
+func Constructor(s string) (ConstructorInterface, error) {
+	handler, _ := onceHandler.LoadOrStore(s, &constructor{})
+	if handler, ok := handler.(ConstructorInterface); ok {
+		return handler, nil
 	}
-	msg := "Can't load instance.(%s : %p)\n"
-	return nil, fmt.Errorf(msg, s, instance)
+	msg := "Can't load handler.(%s : %p)\n"
+	return nil, fmt.Errorf(msg, s, handler)
 }
 
-func (s *builder) AddCommand(cmd *cobra.Command) {
-	s.commands = append(s.commands, cmd)
+func (s *constructor) Register(hdl Handler) {
+	s.handlers = append(s.handlers, hdl)
 }
 
-func (s *builder) GetCommands() []*cobra.Command {
-	return s.commands
+func (s *constructor) Extraction() []Handler {
+	return s.handlers
+}
+
+/*
+Constructionが失敗した時にmainルーチンへ戻します。
+致命的なエラーが発生した場合にエラー処理する必要がある
+場合にはFatalConstructionにerrを判定させます。
+err時に発生するエラーメッセージを引数で取ります。
+*/
+func FatalConstruction(err error, msg string) bool {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, fmt.Sprintf(msg, err))
+		panic(msg)
+	}
+	return true
 }

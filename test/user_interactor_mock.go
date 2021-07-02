@@ -20,7 +20,6 @@ type userUseCaseMock struct {
 func NewUserUseCaseMock() *userUseCaseMock {
 	return &userUseCaseMock{}
 }
-
 func (u *userUseCaseMock) Create() error {
 	return u.MockCreate()
 }
@@ -49,27 +48,22 @@ type UserUseCaseMethod struct {
 func GetUserUseCaseMethodStruct() *UserUseCaseMethod {
 	return &UserUseCaseMethod{}
 }
-
 func (m *UserUseCaseMethod) SetCreate(f func() error) *UserUseCaseMethod {
 	m.Create = f
 	return m
 }
-
 func (m *UserUseCaseMethod) SetRemove(f func(id string) error) *UserUseCaseMethod {
 	m.Remove = f
 	return m
 }
-
 func (m *UserUseCaseMethod) SetUpdate(f func() error) *UserUseCaseMethod {
 	m.Update = f
 	return m
 }
-
 func (m *UserUseCaseMethod) SetFindById(f func(id string) error) *UserUseCaseMethod {
 	m.FindById = f
 	return m
 }
-
 func (m *UserUseCaseMethod) SetFinds(f func() error) *UserUseCaseMethod {
 	m.Finds = f
 	return m
