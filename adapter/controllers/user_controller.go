@@ -1,4 +1,8 @@
 /* vim: set ts=4 sw=4: */
+/*
+adapter/controllers/user_controller.go
+UserController
+*/
 
 package controllers
 

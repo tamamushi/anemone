@@ -4,6 +4,7 @@ package handler_test
 
 import (
 	"fmt"
+	//	"reflect"
 	"testing"
 
 	"anemone/test"
@@ -29,14 +30,24 @@ func SetupCreateHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	controller := test.NewUserControllerMock()
 
 	// ハンドラの準備
-	userHandler := handler.NewUserCreateHandler(usecase)
+	createHandler := handler.NewUserCreateHandler()
+	//createHandler.SetUserUseCase(usecase)
+
+	handle := createHandler.GetHandle()
+	setters := handle.GetSetters()
+	for k, v := range setters {
+		switch k {
+		case "UserUseCase":
+			v(usecase)
+		}
+	}
 
 	// Rootcmdの構築と取得
 	cmd, args := test.SetupRootCMD(tt)
 
 	// UserControllerにUserCreareハンドラを登録
 	controllerCmd := controller.Handler()
-	controllerCmd.AddCommand(userHandler.Handle())
+	controllerCmd.AddCommand(createHandler.Handle())
 
 	// Rootcmdへコマンドコントローラーを登録
 	cmd.AddCommand(controllerCmd)

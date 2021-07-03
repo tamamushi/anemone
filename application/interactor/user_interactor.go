@@ -2,14 +2,16 @@
 
 package interactor
 
+/*
 import (
 	"anemone/application/usecase"
 )
+*/
 
 type userInteractor struct {
 }
 
-func NewUserInteractor() usecase.IUserUseCase {
+func NewUserInteractor() IUserUseCase {
 	return &userInteractor{}
 }
 
