@@ -34,7 +34,7 @@ func NewCmdRoot() *cobra.Command {
 	return cmd
 }
 
-func Bootstrap() {
+func Bootstrap(Input, Output) {
 
 	cmd := NewCmdRoot()
 	buffer := &bytes.Buffer{}

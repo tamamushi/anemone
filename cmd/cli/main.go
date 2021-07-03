@@ -3,9 +3,9 @@
 package main
 
 import (
-	"anemone/adapter"
+	"anemone/infra/entry"
 )
 
 func main() {
-	adapter.Bootstrap()
+	entry.CLI()
 }

@@ -10,7 +10,3 @@ CONCEPT
 
 */
 package anemone
-
-import (
-	"anemone/adapter"
-)
