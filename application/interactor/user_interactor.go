@@ -14,7 +14,6 @@ func NewUserInteractor() *userInteractor {
 }
 
 func (u *userInteractor) Create() error {
-	fmt.Println("create !")
 	return nil
 }
 func (u *userInteractor) Remove(id string) error {

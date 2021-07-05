@@ -1,3 +1,5 @@
+// +build user
+
 /* vim: set ts=4 sw=4: */
 /*
 adapter/handler/user_finds_handler.go
@@ -9,6 +11,7 @@ package handler
 import (
 	"github.com/spf13/cobra"
 
+	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -57,7 +60,7 @@ func (s *userFindsHandler) SetUseCase(u interface{}) {
 	s.interactor = u.(usecase.IUserUseCase)
 }
 
-func (s *userFindsHandler) Handle() *cobra.Command {
+func (s *userFindsHandler) Handle(g gateway.Gateway) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "finds",

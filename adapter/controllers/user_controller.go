@@ -10,6 +10,7 @@ package controllers
 import (
 	"github.com/spf13/cobra"
 
+	"anemone/adapter/gateway"
 	"anemone/adapter/handler"
 	"anemone/application/usecase"
 	"anemone/codes"
@@ -38,7 +39,7 @@ import (
 //
 // UserControllerのInterfaceは定義は以下の通り
 type IUserController interface {
-	Handler() *cobra.Command
+	Handler(gateway.Gateway) *cobra.Command
 }
 
 type userController struct {
@@ -58,10 +59,11 @@ func init() {
 	)
 	interactor := usecase.NewUserInteractor()
 	controller := NewUserController(interactor)
-	blder.AddCommand(controller.Handler())
+	gateway := gateway.NewGateway()
+	blder.AddCommand(controller.Handler(gateway))
 }
 
-func (s *userController) Handler() *cobra.Command {
+func (s *userController) Handler(g gateway.Gateway) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "user",
@@ -100,7 +102,7 @@ func (s *userController) Handler() *cobra.Command {
 					v(s.interactor)
 				}
 			}
-			cmd.AddCommand(handle.Handle())
+			cmd.AddCommand(handle.Handle(g))
 		}
 	}
 	return cmd

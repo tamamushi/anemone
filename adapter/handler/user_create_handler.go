@@ -10,6 +10,7 @@ package handler
 import (
 	"github.com/spf13/cobra"
 
+	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -58,7 +59,7 @@ func (s *userCreateHandler) SetUseCase(u interface{}) {
 	s.interactor = u.(usecase.IUserUseCase)
 }
 
-func (s *userCreateHandler) Handle() *cobra.Command {
+func (s *userCreateHandler) Handle(g gateway.Gateway) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "create",
@@ -80,6 +81,8 @@ func (s *userCreateHandler) Handle() *cobra.Command {
 				return err
 			}
 			err = s.Create(data)
+			cmd.Printf("create success!")
+			cmd.Printf("%s", g.Hoge())
 			if err != nil {
 				return err
 			}

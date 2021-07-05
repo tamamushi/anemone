@@ -38,7 +38,8 @@ func Bootstrap(p presenter.Presenter) {
 
 	cmd := NewCmdRoot()
 	buffer := &bytes.Buffer{}
-	cmd.SetOutput(buffer)
+	cmd.SetOut(buffer)
+	cmd.SetErr(buffer)
 
 	// DBインスタンスをSingletonで登録
 	// Controllerとして分けられた各コマンドは
@@ -55,7 +56,6 @@ func Bootstrap(p presenter.Presenter) {
 	); ok {
 		cmd.AddCommand(blder.GetCommands()...)
 		cmd.SetArgs(append(p.Command(), p.Arguments()...))
-		//fmt.Printf("%s", []string{"user", "create", "--data", jsond})
 		cobra.CheckErr(cmd.Execute())
 
 		fmt.Print(buffer)
