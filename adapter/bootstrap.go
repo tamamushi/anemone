@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"anemone/adapter/controllers"
-	"anemone/adapter/helper"
+	"anemone/adapter/presenter"
 )
 
 type Response struct {
@@ -34,7 +34,7 @@ func NewCmdRoot() *cobra.Command {
 	return cmd
 }
 
-func Bootstrap(Input, Output) {
+func Bootstrap(p presenter.Presenter) {
 
 	cmd := NewCmdRoot()
 	buffer := &bytes.Buffer{}
@@ -54,14 +54,8 @@ func Bootstrap(Input, Output) {
 		"Failed to building Root command group (%s)",
 	); ok {
 		cmd.AddCommand(blder.GetCommands()...)
-
-		args := helper.NewArgumentBuilder()
-		args.AddCommand("user", "create")
-
-		jsond := "{ \"id\": \"xxxx-xxxx-xxxx-xxx\", \"email\": \"t.koube.cp@gmail.com\" }"
-		cmd.SetArgs([]string{"user", "update", "--data", jsond})
+		cmd.SetArgs(append(p.Command(), p.Arguments()...))
 		//fmt.Printf("%s", []string{"user", "create", "--data", jsond})
-
 		cobra.CheckErr(cmd.Execute())
 
 		fmt.Print(buffer)

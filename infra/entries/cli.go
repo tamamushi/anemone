@@ -9,8 +9,12 @@ package entry
 
 import (
 	"anemone/adapter"
+	"anemone/adapter/presenter"
 )
 
-func Lambda() {
-	adapter.Bootstrap()
+func CLI() {
+
+	presenter := presenter.NewCLIPresenter()
+	adapter.Bootstrap(presenter)
+	//return gateway.output(), nil
 }

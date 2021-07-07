@@ -3,7 +3,7 @@
 package main
 
 import (
-	"anemone/infra/entry"
+	"anemone/infra/entries"
 )
 
 func main() {
