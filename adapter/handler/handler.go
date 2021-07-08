@@ -3,21 +3,27 @@
 package handler
 
 import (
+	"encoding/json"
 	"github.com/spf13/cobra"
 
 	"anemone/adapter/gateway"
+	"anemone/model"
 )
 
 type Handler interface {
-	Handle(gateway.Gateway) *cobra.Command
+	Handle() *cobra.Command
 	GetHandle() Handler
-	SetHandle(func(gateway.Gateway) *cobra.Command)
+	SetHandle(func() *cobra.Command)
+	SetGateway(*gateway.Gateway)
+	GetGateway() *gateway.Gateway
 	AddSetter(string, func(interface{}))
 	GetSetters() map[string]func(interface{})
+	Input(string) interface{}
 }
 
 type rhandler struct {
-	handle     *func(gateway.Gateway) *cobra.Command
+	handle     *func() *cobra.Command
+	gateway    *gateway.Gateway
 	interactor map[string]func(interface{})
 }
 
@@ -25,12 +31,20 @@ func (h *rhandler) GetHandle() Handler {
 	return h
 }
 
-func (h *rhandler) Handle(g gateway.Gateway) *cobra.Command {
-	return (*h.handle)(g)
+func (h *rhandler) Handle() *cobra.Command {
+	return (*h.handle)()
 }
 
-func (h *rhandler) SetHandle(f func(gateway.Gateway) *cobra.Command) {
+func (h *rhandler) SetHandle(f func() *cobra.Command) {
 	h.handle = &f
+}
+
+func (h *rhandler) SetGateway(g *gateway.Gateway) {
+	h.gateway = g
+}
+
+func (h *rhandler) GetGateway() *gateway.Gateway {
+	return h.gateway
 }
 
 func (h *rhandler) AddSetter(k string, f func(interface{})) {
@@ -43,4 +57,13 @@ func (h *rhandler) AddSetter(k string, f func(interface{})) {
 
 func (h *rhandler) GetSetters() map[string]func(interface{}) {
 	return h.interactor
+}
+
+func (h *rhandler) Input(data string) interface{} {
+
+	var p model.User
+	if err := json.Unmarshal([]byte(data), &p); err != nil {
+		panic(err)
+	}
+	return p
 }

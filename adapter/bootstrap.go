@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"anemone/adapter/controllers"
+	"anemone/adapter/gateway"
 	"anemone/adapter/presenter"
 )
 
@@ -58,6 +59,8 @@ func Bootstrap(p presenter.Presenter) {
 		cmd.SetArgs(append(p.Command(), p.Arguments()...))
 		cobra.CheckErr(cmd.Execute())
 
+		gateway := gateway.GetGateway()
+		cmd.Printf("%s", gateway.Response())
 		fmt.Print(buffer)
 	}
 }

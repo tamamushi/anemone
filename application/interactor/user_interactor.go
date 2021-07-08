@@ -1,8 +1,11 @@
+// +build user
+
 /* vim: set ts=4 sw=4: */
 
 package interactor
 
 import (
+	"anemone/model"
 	"fmt"
 )
 
@@ -13,22 +16,25 @@ func NewUserInteractor() *userInteractor {
 	return &userInteractor{}
 }
 
-func (u *userInteractor) Create() error {
-	return nil
+func (u *userInteractor) Create(user interface{}) (*model.User, error) {
+	if user, ok := user.(model.User); ok {
+		return &user, nil
+	}
+	return nil, fmt.Errorf("faild!")
 }
 func (u *userInteractor) Remove(id string) error {
 	fmt.Println("remove !")
 	return nil
 }
-func (u *userInteractor) Update() error {
+func (u *userInteractor) Update(user interface{}) (*model.User, error) {
 	fmt.Println("update !")
-	return nil
+	return nil, nil
 }
-func (u *userInteractor) FindById(id string) error {
-	return nil
+func (u *userInteractor) FindById(id string) (*model.User, error) {
+	return nil, nil
 }
-func (u *userInteractor) Finds() error {
-	return nil
+func (u *userInteractor) Finds() ([]*model.User, error) {
+	return nil, nil
 }
 
 /*

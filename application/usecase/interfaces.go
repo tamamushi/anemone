@@ -4,6 +4,7 @@ package usecase
 
 import (
 	"anemone/application/interactor"
+	"anemone/model"
 )
 
 func NewUserInteractor() IUserUseCase {
@@ -11,9 +12,9 @@ func NewUserInteractor() IUserUseCase {
 }
 
 type IUserUseCase interface {
-	Create() error
+	Create(interface{}) (*model.User, error)
 	Remove(id string) error
-	Update() error
-	FindById(id string) error
-	Finds() error
+	Update(interface{}) (*model.User, error)
+	FindById(id string) (*model.User, error)
+	Finds() ([]*model.User, error)
 }

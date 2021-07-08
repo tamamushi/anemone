@@ -5,19 +5,34 @@ Gateway はgatewayである
 */
 package gateway
 
-import ()
+import (
+	"fmt"
+	"sync"
+)
 
-type Gateway interface {
-	Hoge() string
+type Gateway struct {
+	response interface{}
 }
 
-type gateway struct {
+var instance *Gateway
+var once sync.Once
+
+func GetGateway() *Gateway {
+	once.Do(func() {
+		instance = &Gateway{}
+	})
+	return instance
 }
 
-func NewGateway() *gateway {
-	return &gateway{}
+func (g *Gateway) SetResponse(m interface{}) {
+	g.response = m
 }
 
-func (g *gateway) Hoge() string {
-	return "hoge"
+func (g *Gateway) TryParse(m interface{}) error {
+	fmt.Printf("%v#", m)
+	return nil
+}
+
+func (g *Gateway) Response() string {
+	return fmt.Sprintf("%v#", g.response)
 }

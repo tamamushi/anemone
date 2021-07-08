@@ -11,7 +11,6 @@ package handler
 import (
 	"github.com/spf13/cobra"
 
-	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -61,7 +60,7 @@ func (s *userFindByIdHandler) SetUseCase(u interface{}) {
 	s.interactor = u.(usecase.IUserUseCase)
 }
 
-func (s *userFindByIdHandler) Handle(g gateway.Gateway) *cobra.Command {
+func (s *userFindByIdHandler) Handle() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "findbyid",
@@ -112,7 +111,7 @@ func (s *userFindByIdHandler) Handle(g gateway.Gateway) *cobra.Command {
 
 func (s *userFindByIdHandler) FindById(id string) error {
 
-	err := s.interactor.FindById(id)
+	_, err := s.interactor.FindById(id)
 	if err != nil {
 		return errors.Newf(
 			codes.InternalServerError,

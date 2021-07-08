@@ -11,7 +11,6 @@ package handler
 import (
 	"github.com/spf13/cobra"
 
-	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -60,7 +59,7 @@ func (s *userUpdateHandler) SetUseCase(u interface{}) {
 	s.interactor = u.(usecase.IUserUseCase)
 }
 
-func (s *userUpdateHandler) Handle(g gateway.Gateway) *cobra.Command {
+func (s *userUpdateHandler) Handle() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "update",
@@ -91,7 +90,7 @@ func (s *userUpdateHandler) Handle(g gateway.Gateway) *cobra.Command {
 
 func (s *userUpdateHandler) Update() error {
 
-	err := s.interactor.Update()
+	_, err := s.interactor.Update("nothing")
 	if err != nil {
 		return errors.Newf(
 			codes.InternalServerError,

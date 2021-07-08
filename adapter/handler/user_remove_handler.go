@@ -11,7 +11,6 @@ package handler
 import (
 	"github.com/spf13/cobra"
 
-	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -61,7 +60,7 @@ func (s *userRemoveHandler) SetUseCase(u interface{}) {
 	s.interactor = u.(usecase.IUserUseCase)
 }
 
-func (s *userRemoveHandler) Handle(g gateway.Gateway) *cobra.Command {
+func (s *userRemoveHandler) Handle() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "remove",
