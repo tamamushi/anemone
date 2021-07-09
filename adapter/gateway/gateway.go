@@ -10,6 +10,11 @@ import (
 	"sync"
 )
 
+type IGateway interface {
+	SetResponse(interface{})
+	Response() string
+}
+
 type Gateway struct {
 	response interface{}
 }
@@ -26,11 +31,6 @@ func GetGateway() *Gateway {
 
 func (g *Gateway) SetResponse(m interface{}) {
 	g.response = m
-}
-
-func (g *Gateway) TryParse(m interface{}) error {
-	fmt.Printf("%v#", m)
-	return nil
 }
 
 func (g *Gateway) Response() string {

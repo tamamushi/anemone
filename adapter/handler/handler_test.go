@@ -15,7 +15,8 @@ func Example() {
 		err,
 		"Failed to building User command group (%s)",
 	)
-	handler := handler.NewUserCreateHandler()
+	parser := handler.NewUserCreateParser()
+	handler := handler.NewUserCreateHandler(parser)
 	constructor.Register(handler.GetHandle())
 }
 

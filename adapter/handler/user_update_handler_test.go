@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"anemone/model"
 	"anemone/test"
 	"github.com/spf13/cobra"
 
@@ -18,18 +19,36 @@ func SetupUpdateHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	// ユースケースの準備
 	usecase := test.NewUserUseCaseMock()
 	method, _ := tt.GetMethod()
-	inter, ok := method.(*test.UserUseCaseMethod)
-	if ok {
-		usecase.MockUpdate = inter.Update
+	inter1, ok1 := method.(*test.UserUseCaseMethod)
+	if ok1 {
+		usecase.MockUpdate = inter1.Update
 	} else {
-		usecase.MockUpdate = func() error { return nil }
+		f := func(interface{}) (*model.User, error) { return nil, nil }
+		usecase.MockUpdate = f
 	}
 
 	// コントローラーの準備
 	controller := test.NewUserControllerMock()
 
+	// パーサーの準備
+	parser := test.NewParserMock(model.User{})
+	parser_method, _ := tt.GetParser()
+	inter2, ok2 := parser_method.(*test.ParserMethod)
+
+	parser.MockTryParseFormat = func(s string) error { return nil }
+	parser.MockInput = func(s string) interface{} { return nil }
+	if ok2 {
+		if parser.MockTryParseFormat != nil {
+			parser.MockTryParseFormat = inter2.TryParseFormat
+		}
+		if parser.MockInput != nil {
+			parser.MockInput = inter2.Input
+		}
+	}
+
 	// ハンドラの準備
-	userHandler := handler.NewUserUpdateHandler()
+	userHandler := handler.NewUserUpdateHandler(parser)
+	userHandler.SetGateway(&test.GatewayMock{})
 
 	handle := userHandler.GetHandle()
 	for k, v := range handle.GetSetters() {
@@ -43,7 +62,7 @@ func SetupUpdateHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	cmd, args := test.SetupRootCMD(tt)
 
 	// UserControllerにUserCreareハンドラを登録
-	controllerCmd := controller.Handler()
+	controllerCmd := controller.Handler(&test.GatewayMock{})
 	controllerCmd.AddCommand(userHandler.Handle())
 
 	// Rootcmdへコマンドコントローラーを登録
@@ -70,7 +89,14 @@ func TestUserUpdateHandlerCalled_Handle(t *testing.T) {
 			title,
 			"Test argument statement incorrect format.",
 			test.SetCommand("update"),
-			test.SetArgument("data", "hogehoge"),
+			test.SetArgument("data", "{Invalid JSON format}"),
+			test.SetParser(
+				test.GetParserMethodStruct().
+					SetTryParseFormat(func(string) error {
+						return fmt.Errorf("Mocking Dummy Error")
+					},
+					),
+			),
 			test.SetExpectCode(codes.InvalidArgument),
 			test.SetExpectCodeMsg("Return code expected InvalidArgument."),
 		),
@@ -85,12 +111,12 @@ func TestUserUpdateHandlerCalled_Handle(t *testing.T) {
 			test.SetArgument("data", "hogehoge"),
 			test.SetMethod(
 				test.GetUserUseCaseMethodStruct().
-					SetUpdate(func() error {
+					SetUpdate(func(interface{}) (*model.User, error) {
 						fmt.Fprintf(
 							test.Buffer,
 							"テストは通るが仕様が確定していない為本来はNG ",
 						)
-						return nil
+						return nil, nil
 					},
 					),
 			),
@@ -105,8 +131,8 @@ func TestUserUpdateHandlerCalled_Handle(t *testing.T) {
 			test.SetArgument("data", "hogehoge"),
 			test.SetMethod(
 				test.GetUserUseCaseMethodStruct().
-					SetUpdate(func() error {
-						return fmt.Errorf("Mocking Dummy Error")
+					SetUpdate(func(interface{}) (*model.User, error) {
+						return nil, fmt.Errorf("Mocking Dummy Error")
 					},
 					),
 			),

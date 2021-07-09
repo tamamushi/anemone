@@ -141,7 +141,8 @@ type TCase struct {
 	expectCodeMsg string
 	expected      string
 	expectedMsg   string
-	tMethod       interface{}
+	tUseCase      interface{}
+	tParser       interface{}
 }
 
 type option func(*TCase)
@@ -151,7 +152,8 @@ func Case(title string, testName string, opts ...option) *TCase {
 		caseName:  title,
 		testName:  testName,
 		tArgument: nil,
-		tMethod:   nil,
+		tUseCase:  nil,
+		tParser:   nil,
 	}
 	for _, opt := range opts {
 		opt(tcase)
@@ -168,14 +170,27 @@ func (t *TCase) GetCaseName() string {
 
 // Set/Get Method
 func (t *TCase) GetMethod() (interface{}, bool) {
-	if t.tMethod != nil {
-		return t.tMethod, true
+	if t.tUseCase != nil {
+		return t.tUseCase, true
 	}
 	return nil, false
 }
 func SetMethod(t interface{}) option {
 	return func(tc *TCase) {
-		tc.tMethod = t
+		tc.tUseCase = t
+	}
+}
+
+// Set/Get Gateway
+func (t *TCase) GetParser() (interface{}, bool) {
+	if t.tParser != nil {
+		return t.tParser, true
+	}
+	return nil, false
+}
+func SetParser(t interface{}) option {
+	return func(tc *TCase) {
+		tc.tParser = t
 	}
 }
 

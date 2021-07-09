@@ -11,6 +11,7 @@ package handler
 import (
 	"github.com/spf13/cobra"
 
+	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -36,14 +37,17 @@ type UserFindByIdHandler interface {
 
 type userFindByIdHandler struct {
 	interactor usecase.IUserUseCase
+	parser     gateway.IParser
 	rhandler
 }
 
+//func NewUserFindByIdHandler(p gateway.IParser) UserFindByIdHandler {
 func NewUserFindByIdHandler() UserFindByIdHandler {
-	r := &userFindByIdHandler{}
-	r.AddSetter("UserUseCase", r.SetUseCase)
-	r.SetHandle(r.Handle)
-	return r
+	//	s := &userFindByIdHandler{parser: p}
+	s := &userFindByIdHandler{}
+	s.AddSetter("UserUseCase", s.SetUseCase)
+	s.SetHandle(s.Handle)
+	return s
 }
 
 func init() {
@@ -52,6 +56,8 @@ func init() {
 		err,
 		"Failed to building User command group (%s)",
 	)
+	//	parser := NewUserFindByIdParser()
+	//	handler := NewUserFindByIdHandler(parser)
 	handler := NewUserFindByIdHandler()
 	constructor.Register(handler.GetHandle())
 }

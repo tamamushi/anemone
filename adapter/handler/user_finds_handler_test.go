@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"testing"
 
+	"anemone/model"
 	"anemone/test"
 	"github.com/spf13/cobra"
 
@@ -22,7 +23,8 @@ func SetupFindsHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	if ok {
 		usecase.MockFinds = inter.Finds
 	} else {
-		usecase.MockFinds = func() error { return nil }
+		f := func() ([]*model.User, error) { return nil, nil }
+		usecase.MockFinds = f
 	}
 
 	// コントローラーの準備
@@ -43,7 +45,7 @@ func SetupFindsHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	cmd, args := test.SetupRootCMD(tt)
 
 	// UserControllerにUserCreareハンドラを登録
-	controllerCmd := controller.Handler()
+	controllerCmd := controller.Handler(&test.GatewayMock{})
 	controllerCmd.AddCommand(findsHandler.Handle())
 
 	// Rootcmdへコマンドコントローラーを登録
@@ -95,12 +97,12 @@ func TestUserFindsHandlerCalled_Handle(t *testing.T) {
 			test.SetArgument("id", "1234-A78B-12ID-6789"),
 			test.SetMethod(
 				test.GetUserUseCaseMethodStruct().
-					SetFinds(func() error {
+					SetFinds(func() ([]*model.User, error) {
 						fmt.Fprintf(
 							test.Buffer,
 							"テストは通るが仕様が確定していない為本来はNG ",
 						)
-						return nil
+						return nil, nil
 					},
 					),
 			),
@@ -115,8 +117,8 @@ func TestUserFindsHandlerCalled_Handle(t *testing.T) {
 			test.SetArgument("id", "1234-A78B-12ID-6789"),
 			test.SetMethod(
 				test.GetUserUseCaseMethodStruct().
-					SetFinds(func() error {
-						return fmt.Errorf("Mocking Dummy Error")
+					SetFinds(func() ([]*model.User, error) {
+						return nil, fmt.Errorf("Mocking Dummy Error")
 					},
 					),
 			),

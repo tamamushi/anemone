@@ -8,9 +8,9 @@ UserCreateHandler
 package handler
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 
+	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -23,9 +23,15 @@ import (
 // 2021/06/27 UserCreateHandler
 // 引数をInteractorにデータとして渡す方式が固まってない。その為引渡処理が未実装
 //
+// 2021/07/17 UserCreateHandler
+// 引数の引渡し方式確定。バリデーションも実装。
+// バリデーション処理自体はParserクラスに切り出し
+// Create処理成功時のレスポンス処理が未実装。
+//
 // HISTORY(koube):
 // 2021/06/27 UserCreateHandler 新規作成
 // 2021/07/05 UserCreateHandler UseCaseSetterとCommandConstructorに対応
+// 2021/07/17 UserCreateHandler UserCreateParserに対応
 
 type UserCreateHandler interface {
 	Handler
@@ -35,14 +41,15 @@ type UserCreateHandler interface {
 
 type userCreateHandler struct {
 	interactor usecase.IUserUseCase
+	parser     gateway.IParser
 	rhandler
 }
 
-func NewUserCreateHandler() UserCreateHandler {
-	r := &userCreateHandler{}
-	r.AddSetter("UserUseCase", r.SetUseCase)
-	r.SetHandle(r.Handle)
-	return r
+func NewUserCreateHandler(p gateway.IParser) UserCreateHandler {
+	s := &userCreateHandler{parser: p}
+	s.AddSetter("UserUseCase", s.SetUseCase)
+	s.SetHandle(s.Handle)
+	return s
 }
 
 func init() {
@@ -51,7 +58,11 @@ func init() {
 		err,
 		"Failed to building User command group (%s)",
 	)
-	handler := NewUserCreateHandler()
+	// CreateHandlerに対応する。つまりUserUseCaseの
+	// Createに対するInputPortを動的に提供する先を
+	// 生成する。
+	parser := NewUserCreateParser()
+	handler := NewUserCreateHandler(parser)
 	construct.Register(handler.GetHandle())
 }
 
@@ -73,7 +84,8 @@ func (s *userCreateHandler) Handle() *cobra.Command {
 					"Need to specified DATA",
 				)
 			}
-			if err := s.GetGateway().TryParse(data); err != nil {
+			// data が所定のフォーマット（JSON形式）でなければエラー
+			if err := s.parser.TryParseFormat(data); err != nil {
 				return errors.New(
 					codes.InvalidArgument,
 					errors.Messagef(
@@ -97,7 +109,7 @@ func (s *userCreateHandler) Handle() *cobra.Command {
 }
 
 func (s *userCreateHandler) Create(data string) error {
-	user, err := s.interactor.Create(s.Input(data))
+	user, err := s.interactor.Create(s.parser.Input(data))
 	if err != nil {
 		return errors.Newf(
 			codes.InternalServerError,

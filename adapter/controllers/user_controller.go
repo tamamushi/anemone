@@ -39,7 +39,7 @@ import (
 //
 // UserControllerのInterfaceは定義は以下の通り
 type IUserController interface {
-	Handler(*gateway.Gateway) *cobra.Command
+	Handler(gateway.IGateway) *cobra.Command
 }
 
 type userController struct {
@@ -63,7 +63,7 @@ func init() {
 	blder.AddCommand(controller.Handler(gateway))
 }
 
-func (s *userController) Handler(g *gateway.Gateway) *cobra.Command {
+func (s *userController) Handler(g gateway.IGateway) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "user",

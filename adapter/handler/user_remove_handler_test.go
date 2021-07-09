@@ -43,7 +43,7 @@ func SetupRemoveHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	cmd, args := test.SetupRootCMD(tt)
 
 	// UserControllerにUserCreareハンドラを登録
-	controllerCmd := controller.Handler()
+	controllerCmd := controller.Handler(&test.GatewayMock{})
 	controllerCmd.AddCommand(userHandler.Handle())
 
 	// Rootcmdへコマンドコントローラーを登録
