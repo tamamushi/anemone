@@ -11,7 +11,7 @@ package handler
 import (
 	"github.com/spf13/cobra"
 
-	"anemone/adapter/gateway"
+	//"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -37,14 +37,14 @@ type UserFindByIdHandler interface {
 
 type userFindByIdHandler struct {
 	interactor usecase.IUserUseCase
-	parser     gateway.IParser
+	//	parser     gateway.IParser
+	parser *UserFindByIdParser
 	rhandler
 }
 
 //func NewUserFindByIdHandler(p gateway.IParser) UserFindByIdHandler {
-func NewUserFindByIdHandler() UserFindByIdHandler {
-	//	s := &userFindByIdHandler{parser: p}
-	s := &userFindByIdHandler{}
+func NewUserFindByIdHandler(p *UserFindByIdParser) UserFindByIdHandler {
+	s := &userFindByIdHandler{parser: p}
 	s.AddSetter("UserUseCase", s.SetUseCase)
 	s.SetHandle(s.Handle)
 	return s
@@ -56,9 +56,12 @@ func init() {
 		err,
 		"Failed to building User command group (%s)",
 	)
-	//	parser := NewUserFindByIdParser()
-	//	handler := NewUserFindByIdHandler(parser)
-	handler := NewUserFindByIdHandler()
+	//format := NewUserFindByIdFormatParser()
+	output := NewOutputParser()
+
+	//	parser := NewUserFindByIdParser(format, output)
+	parser := NewUserFindByIdParser(output)
+	handler := NewUserFindByIdHandler(parser)
 	constructor.Register(handler.GetHandle())
 }
 
@@ -80,6 +83,8 @@ func (s *userFindByIdHandler) Handle() *cobra.Command {
 					"Need to specified ID",
 				)
 			}
+			_ = s.parser.TryParse(id, s.parser.GetModel())
+
 			// id の桁数が指定されたフォーマットじゃない場合はエラー
 			/*
 				if len(id) > 20 {

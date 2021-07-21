@@ -30,8 +30,24 @@ func SetupFindByIdHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	// コントローラーの準備
 	controller := test.NewUserControllerMock()
 
+	// パーサーの準備
+	parser := test.NewParserMock(model.User{})
+	parser_method, _ := tt.GetParser()
+	inter2, ok2 := parser_method.(*test.ParserMethod)
+
+	parser.MockTryParseFormat = func(s string) error { return nil }
+	parser.MockInput = func(s string) interface{} { return nil }
+	if ok2 {
+		if parser.MockTryParseFormat != nil {
+			parser.MockTryParseFormat = inter2.TryParseFormat
+		}
+		if parser.MockInput != nil {
+			parser.MockInput = inter2.Input
+		}
+	}
 	// ハンドラの準備
-	userHandler := handler.NewUserFindByIdHandler()
+	userHandler := handler.NewUserFindByIdHandler(parser)
+	userHandler.SetGateway(&test.GatewayMock{})
 
 	handle := userHandler.GetHandle()
 	for k, v := range handle.GetSetters() {

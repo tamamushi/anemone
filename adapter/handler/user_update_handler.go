@@ -1,4 +1,4 @@
-// +build user
+// +build -user
 
 /* vim: set ts=4 sw=4: */
 /*

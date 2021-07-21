@@ -12,7 +12,7 @@ import (
 	//"fmt"
 
 	//	"encoding/json"
-
+	"anemone/adapter/gateway"
 	"anemone/model"
 )
 
@@ -21,14 +21,41 @@ import (
 // HISTORY(koube):
 // 2021/07/17 UserFindByIdParser 新規作成
 
-type userFindByIdParser struct {
+type UserFindByIdParser struct {
 	model model.User
+//	*gateway.IFormatParser
+	*gateway.Output
 }
 
-func NewUserFindByIdParser() *userFindByIdParser {
-	return &UserCreateParser{model.User{}}
+func NewUserFindByIdParser(
+//	parser *gateway.IFormatParser,
+	output *gateway.Output,
+) *UserFindByIdParser {
+
+	return &UserFindByIdParser{
+		model.User{},
+//		parser,
+		output,
+	}
 }
 
+func (p *UserFindByIdParser) SetParser(interface{}) {
+	return
+}
+
+func (p *UserFindByIdParser) GetModel() *model.User {
+	return &p.model
+}
+
+func (p *UserFindByIdParser) TryParse(data string) error {
+	(*UserIdFormatParser).TryParse(nil, 
+}
+
+func NewOutputParser() *gateway.Output {
+	return &gateway.Output{}
+}
+
+/*
 func (p *userFindByIdParser) TryParseFormat(data string) error {
 	fmt.Printf("%#v", p.model)
 	if err := json.Unmarshal([]byte(data), &p.model); err != nil {
@@ -43,3 +70,4 @@ func (p *UserCreateParser) Input(data string) interface{} {
 	}
 	return p.model
 }
+*/

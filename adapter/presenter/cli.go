@@ -14,12 +14,17 @@ func NewCLIPresenter() *cliPresenter {
 }
 
 func (p *cliPresenter) Command() []string {
-	return []string{"user", "create"}
+	//return []string{"user", "create"}
+	//return []string{"user", "remove"}
+	return []string{"user", "findbyid"}
+	//return []string{"user"}
 }
 
 func (p *cliPresenter) Arguments() []string {
 	return []string{
-		"--data",
-		"{ \"id\": \"xxxx-xxxx-xxxx-xxx\", \"email\": \"t.koube.cp@gmail.com\" }",
+		//		"--data",
+		//		"{ \"id\": \"xxxx-xxxx-xxxx-xxx\", \"email\": \"t.koube.cp@gmail.com\" }",
+		"--id",
+		"1000-0001-00AA-BBBB",
 	}
 }
