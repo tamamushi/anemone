@@ -1,9 +1,8 @@
 /* vim: set ts=4 sw=4: */
 
-/*
-Gateway はgatewayである
-*/
 package gateway
+
+// このファイルはGatewayのinterfaceを定義する
 
 import (
 	"fmt"
@@ -15,24 +14,24 @@ type IGateway interface {
 	Response() string
 }
 
-type Gateway struct {
+type gateway struct {
 	response interface{}
 }
 
-var instance *Gateway
+var instance *gateway
 var once sync.Once
 
-func GetGateway() *Gateway {
+func GetGateway() *gateway {
 	once.Do(func() {
-		instance = &Gateway{}
+		instance = &gateway{}
 	})
 	return instance
 }
 
-func (g *Gateway) SetResponse(m interface{}) {
+func (g *gateway) SetResponse(m interface{}) {
 	g.response = m
 }
 
-func (g *Gateway) Response() string {
+func (g *gateway) Response() string {
 	return fmt.Sprintf("%v#", g.response)
 }

@@ -1,8 +1,11 @@
+// +build user
+
 /* vim: set ts=4 sw=4: */
 
 package handler_test
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -11,25 +14,35 @@ import (
 
 	"anemone/adapter/handler"
 	"anemone/codes"
+	"anemone/errors"
 )
 
-func SetupRemoveHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
+func SetupRemoveHandlerTest(
+	b *bytes.Buffer,
+	t *testing.T,
+	tt *test.TCase,
+) *cobra.Command {
+
+	g := &test.GatewayMock{}
+	g.SetOut(b)
 
 	// ユースケースの準備
-	usecase := test.NewUserUseCaseMock()
-	method, _ := tt.GetMethod()
-	inter, ok := method.(*test.UserUseCaseMethod)
-	if ok {
-		usecase.MockRemove = inter.Remove
-	} else {
-		usecase.MockRemove = func(id string) error { return nil }
-	}
+	usecase := test.PrepareUseCaseMock(tt)
 
 	// コントローラーの準備
 	controller := test.NewUserControllerMock()
 
+	// パーサーの準備
+	format := test.PrepareParserMock(tt)
+	// Parserは薄いのでここでは実体を使う
+	parser := handler.NewUserRemoveParser(format)
+	// 各ハンドラ毎にパーサーのラッパーを用意。これは、
+	// 各ハンドラで必要なメソッドの違いを吸収し、同一メソッド名
+	// でハンドラによる処理の違いを実現する為に存在する
+
 	// ハンドラの準備
-	userHandler := handler.NewUserRemoveHandler()
+	userHandler := handler.NewUserRemoveHandler(parser)
+	userHandler.SetGateway(g)
 
 	handle := userHandler.GetHandle()
 	for k, v := range handle.GetSetters() {
@@ -42,8 +55,8 @@ func SetupRemoveHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	// Rootcmdの構築と取得
 	cmd, args := test.SetupRootCMD(tt)
 
-	// UserControllerにUserCreareハンドラを登録
-	controllerCmd := controller.Handler(&test.GatewayMock{})
+	// UserControllerにUserRemoveハンドラを登録
+	controllerCmd := controller.Handler(g)
 	controllerCmd.AddCommand(userHandler.Handle())
 
 	// Rootcmdへコマンドコントローラーを登録
@@ -71,15 +84,16 @@ func TestUserRemoveHandlerCalled_Handle(t *testing.T) {
 			"Test argument statement incorrect format.",
 			test.SetCommand("remove"),
 			test.SetArgument("id", "12"),
-			test.SetExpectCode(codes.InvalidArgument),
-			test.SetExpectCodeMsg("Return code expected InvalidArgument."),
-		),
-		// 引数のidが指定されたキャラクタセットじゃなければエラー
-		test.Case(
-			title,
-			"Test argument statement use incorrect character.",
-			test.SetCommand("remove"),
-			test.SetArgument("id", "1234#-567%8-1..5-6**90"),
+			test.SetParser(
+				test.GetParserMethodStruct().
+					SetTryParse(func(id string, _ interface{}) error {
+						return errors.New(
+							codes.InvalidArgument,
+							"Mocking Dymmy invalid argument Error",
+						)
+					},
+					),
+			),
 			test.SetExpectCode(codes.InvalidArgument),
 			test.SetExpectCodeMsg("Return code expected InvalidArgument."),
 		),

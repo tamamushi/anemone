@@ -45,7 +45,7 @@ type UserUseCaseMethod struct {
 }
 
 func GetUserUseCaseMethodStruct() *UserUseCaseMethod {
-	return &UserUseCaseMethod{}
+	return &UserUseCaseMethod{nil, nil, nil, nil, nil}
 }
 func (m *UserUseCaseMethod) SetCreate(
 	f func(interface{}) (*model.User, error)) *UserUseCaseMethod {
@@ -71,4 +71,29 @@ func (m *UserUseCaseMethod) SetFinds(
 	f func() ([]*model.User, error)) *UserUseCaseMethod {
 	m.Finds = f
 	return m
+}
+
+func PrepareUseCaseMock(tt *TCase) usecase.IUserUseCase {
+	usecase := NewUserUseCaseMock()
+	method, _ := tt.GetMethod()
+	inter, ok := method.(*UserUseCaseMethod)
+	if ok {
+		usecase.MockFindById = inter.FindById
+		usecase.MockCreate = inter.Create
+		usecase.MockRemove = inter.Remove
+		usecase.MockUpdate = inter.Update
+	} else {
+		f1 := func(id string) (*model.User, error) { return new(model.User), nil }
+		usecase.MockFindById = f1
+
+		f2 := func(_ interface{}) (*model.User, error) { return nil, nil }
+		usecase.MockCreate = f2
+
+		f3 := func(id string) error { return nil }
+		usecase.MockRemove = f3
+
+		f4 := func(interface{}) (*model.User, error) { return nil, nil }
+		usecase.MockUpdate = f4
+	}
+	return usecase
 }

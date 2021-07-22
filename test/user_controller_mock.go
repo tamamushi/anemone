@@ -3,21 +3,27 @@
 package test
 
 import (
+	"bytes"
+
+	"github.com/spf13/cobra"
+
 	"anemone/adapter/controllers"
 	"anemone/adapter/gateway"
-	"github.com/spf13/cobra"
 )
 
+// 本来はanemone/gatewayにあるテストの際の引数を満たす上で便宜上
+// controllerMockに書いてしまう方が早いためここで定義する
 type GatewayMock struct {
 	gateway.IGateway
-	// 本来はanemone/gatewayにある
-	// テストの際の引数を満たす上で便宜上
-	// controllerMockに書いてしまう方が早いため
-	// ここで定義する
+	buffer *bytes.Buffer
 }
 
 func (g *GatewayMock) SetResponse(i interface{}) {
-	_ = i
+	g.buffer.Write([]byte(i.(string)))
+}
+
+func (g *GatewayMock) SetOut(b *bytes.Buffer) {
+	g.buffer = b
 }
 
 type controllerMock struct {

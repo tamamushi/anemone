@@ -4,6 +4,7 @@ package handler_test
 
 import (
 	_ "anemone/adapter/handler"
+	"anemone/model"
 )
 
 func Example() {
@@ -24,3 +25,5 @@ func Example() {
 
 // テスト番号出力のためのグローバル変数
 var index = 0
+
+var user = &model.User{"test", "test"}

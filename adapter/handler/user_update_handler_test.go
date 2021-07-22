@@ -1,10 +1,12 @@
-// +build -user
+// +build user
 
 /* vim: set ts=4 sw=4: */
 
 package handler_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -16,41 +18,30 @@ import (
 	"anemone/codes"
 )
 
-func SetupUpdateHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
+func SetupUpdateHandlerTest(
+	b *bytes.Buffer,
+	t *testing.T,
+	tt *test.TCase,
+) *cobra.Command {
+
+	g := &test.GatewayMock{}
+	g.SetOut(b)
 
 	// ユースケースの準備
-	usecase := test.NewUserUseCaseMock()
-	method, _ := tt.GetMethod()
-	inter1, ok1 := method.(*test.UserUseCaseMethod)
-	if ok1 {
-		usecase.MockUpdate = inter1.Update
-	} else {
-		f := func(interface{}) (*model.User, error) { return nil, nil }
-		usecase.MockUpdate = f
-	}
+	usecase := test.PrepareUseCaseMock(tt)
 
 	// コントローラーの準備
 	controller := test.NewUserControllerMock()
 
 	// パーサーの準備
-	parser := test.NewParserMock(model.User{})
-	parser_method, _ := tt.GetParser()
-	inter2, ok2 := parser_method.(*test.ParserMethod)
-
-	parser.MockTryParseFormat = func(s string) error { return nil }
-	parser.MockInput = func(s string) interface{} { return nil }
-	if ok2 {
-		if parser.MockTryParseFormat != nil {
-			parser.MockTryParseFormat = inter2.TryParseFormat
-		}
-		if parser.MockInput != nil {
-			parser.MockInput = inter2.Input
-		}
-	}
+	format := test.PrepareParserMock(tt)
+	input := test.PrepareInputMock(tt)
+	output := test.PrepareOutputMock(tt)
+	parser := handler.NewUserUpdateParser(format, input, output)
 
 	// ハンドラの準備
 	userHandler := handler.NewUserUpdateHandler(parser)
-	userHandler.SetGateway(&test.GatewayMock{})
+	userHandler.SetGateway(g)
 
 	handle := userHandler.GetHandle()
 	for k, v := range handle.GetSetters() {
@@ -64,7 +55,7 @@ func SetupUpdateHandlerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	cmd, args := test.SetupRootCMD(tt)
 
 	// UserControllerにUserCreareハンドラを登録
-	controllerCmd := controller.Handler(&test.GatewayMock{})
+	controllerCmd := controller.Handler(g)
 	controllerCmd.AddCommand(userHandler.Handle())
 
 	// Rootcmdへコマンドコントローラーを登録
@@ -94,7 +85,7 @@ func TestUserUpdateHandlerCalled_Handle(t *testing.T) {
 			test.SetArgument("data", "{Invalid JSON format}"),
 			test.SetParser(
 				test.GetParserMethodStruct().
-					SetTryParseFormat(func(string) error {
+					SetTryParse(func(string, interface{}) error {
 						return fmt.Errorf("Mocking Dummy Error")
 					},
 					),
@@ -104,6 +95,8 @@ func TestUserUpdateHandlerCalled_Handle(t *testing.T) {
 		),
 	}
 	title = fmt.Sprintf("[Processing Behavior]")
+	result, _ := json.Marshal(user)
+	parser := test.GetParserMethodStruct()
 	cases = append(cases, []*test.TCase{
 		// 更新処理が正常終了
 		test.Case(
@@ -114,15 +107,25 @@ func TestUserUpdateHandlerCalled_Handle(t *testing.T) {
 			test.SetMethod(
 				test.GetUserUseCaseMethodStruct().
 					SetUpdate(func(interface{}) (*model.User, error) {
-						fmt.Fprintf(
-							test.Buffer,
-							"テストは通るが仕様が確定していない為本来はNG ",
-						)
-						return nil, nil
+						return user, nil
 					},
 					),
 			),
-			test.SetExpectedNil(),
+			test.SetParser(
+				parser.SetInput(func(s string, m interface{}) interface{} {
+					_ = json.Unmarshal([]byte(s), m)
+					return m
+				},
+				),
+			),
+			test.SetParser(
+				parser.SetOutput(func(m interface{}) string {
+					model, _ := json.Marshal(m)
+					return string(model)
+				},
+				),
+			),
+			test.SetExpected(string(result)),
 			test.SetExpectedMsg("Expected operation Successfully."),
 		),
 		// 更新処理が異常終了

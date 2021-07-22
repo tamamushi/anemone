@@ -11,7 +11,7 @@ package handler
 import (
 	"github.com/spf13/cobra"
 
-	//"anemone/adapter/gateway"
+	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -22,11 +22,18 @@ import (
 // 引数が指定されたフォーマットじゃない場合はエラーのバリデーションが未実装
 //
 // 2021/06/27 UserFindByIdHandler
-// 引数のidに指定された文字列以外が使われてる場合はエラーのバリデーションが未実装
+// 引数のidに指定された文字列以外が使われてる場合はエラーの
+// バリデーションが未実装
+//
+// 2021/07/25 UserFindByIdHandler
+// 指定された引数のバリデーションはParserクラスに切り出す。
+// Parserはインジェクションで実装を入れ替える。Output処理もParserに統合し
+// 外界との変換処理はParserクラスの担当として実装する。
 //
 // HISTORY(koube):
 // 2021/06/27 UserFindByIdHandler 新規作成
 // 2021/07/05 UserFindByIdHandler UseCaseSetterとCommandConstructorに対応
+// 2021/07/26 UserFindByIdHandler UserFindByIdParserに対応させる
 
 // UserFindByIdHandler のinterface定義
 type UserFindByIdHandler interface {
@@ -37,8 +44,7 @@ type UserFindByIdHandler interface {
 
 type userFindByIdHandler struct {
 	interactor usecase.IUserUseCase
-	//	parser     gateway.IParser
-	parser *UserFindByIdParser
+	parser     *UserFindByIdParser
 	rhandler
 }
 
@@ -56,11 +62,10 @@ func init() {
 		err,
 		"Failed to building User command group (%s)",
 	)
-	//format := NewUserFindByIdFormatParser()
-	output := NewOutputParser()
+	format := gateway.NewUserIdFormatParser()
+	output := gateway.NewUserOutputParser()
 
-	//	parser := NewUserFindByIdParser(format, output)
-	parser := NewUserFindByIdParser(output)
+	parser := NewUserFindByIdParser(format, output)
 	handler := NewUserFindByIdHandler(parser)
 	constructor.Register(handler.GetHandle())
 }
@@ -83,46 +88,37 @@ func (s *userFindByIdHandler) Handle() *cobra.Command {
 					"Need to specified ID",
 				)
 			}
-			_ = s.parser.TryParse(id, s.parser.GetModel())
-
-			// id の桁数が指定されたフォーマットじゃない場合はエラー
-			/*
-				if len(id) > 20 {
-					return errors.New(
-						codes.InvalidArgument,
-						"Allow the id formats XXXX-XXXX-XXXX-XXXX",
-					)
+			// idが指定されたフォーマットじゃない場合はエラー
+			parser, ok := interface{}(s.parser).(gateway.IFormatParser)
+			if ok {
+				err := parser.TryParse(id, s.parser.GetModel())
+				if err != nil {
+					return err
 				}
-			*/
-			// id が指定されたキャラクタセットじゃなければエラー
-			// キャラクタセットは、0-9、A-Z（小文字のa-zは含まない）
-			/*
-				if len(id) > 20 {
-					return errors.New(
-						codes.InvalidArgument,
-						"Allow the usable character is 0-9, A-Z",
-					)
-				}
-			*/
-			return nil
+				return nil
+			}
+			// TryParserが存在しない（インターフェースを満たさない）場合は
+			// Internal Server Error
+			return errors.New(
+				codes.InternalServerError,
+				"Required Method dose not exist in the specified parser",
+			)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, _ := cmd.Flags().GetString("id")
 			// 見つかったユーザー情報の返却
-			err := s.FindById(id)
-			if err != nil {
+			if err := s.FindById(id); err != nil {
 				return err
 			}
 			return nil
 		},
 	}
-	cmd.Flags().String("id", "", "Your name")
+	cmd.Flags().String("id", "", "Specify the ID that identifies the User")
 	return cmd
 }
 
 func (s *userFindByIdHandler) FindById(id string) error {
-
-	_, err := s.interactor.FindById(id)
+	result, err := s.interactor.FindById(id)
 	if err != nil {
 		return errors.Newf(
 			codes.InternalServerError,
@@ -130,5 +126,15 @@ func (s *userFindByIdHandler) FindById(id string) error {
 			err,
 		)
 	}
+	output, ok := interface{}(s.parser).(gateway.IOutput)
+	if !ok {
+		// Outputが存在しない（インターフェースを満たさない）場合は
+		// Internal Server Error
+		return errors.New(
+			codes.InternalServerError,
+			"Required Method dose not exist in the specified parser",
+		)
+	}
+	s.gateway.SetResponse(output.Output(result))
 	return nil
 }

@@ -1,7 +1,9 @@
 /* vim: set ts=4 sw=4: */
 
 /*
-Gateway はgatewayである
+Response
+
+Response はgatewayの実装
 */
 package gateway
 

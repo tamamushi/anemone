@@ -4,6 +4,7 @@ package controllers_test
 
 import (
 	"anemone/adapter/controllers"
+	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 )
 
@@ -18,5 +19,6 @@ func Example() {
 	)
 	interactor := usecase.NewUserInteractor()
 	controller := controllers.NewUserController(interactor)
-	blder.AddCommand(controller.Handler())
+	gateway := gateway.GetGateway()
+	blder.AddCommand(controller.Handler(gateway))
 }

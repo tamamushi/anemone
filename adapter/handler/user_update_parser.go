@@ -1,4 +1,4 @@
-// +build -user
+// +build user
 
 /* vim: set ts=4 sw=4: */
 /*
@@ -9,8 +9,8 @@ UserUpdateParser
 package handler
 
 import (
+	"anemone/adapter/gateway"
 	"anemone/model"
-	"encoding/json"
 )
 
 // TODO(koube):
@@ -19,23 +19,26 @@ import (
 // 2021/06/27 UserUpdateParser 新規作成
 
 type UserUpdateParser struct {
-	model model.User
+	model *model.User
+	gateway.IFormatParser
+	gateway.IInput
+	gateway.IOutput
 }
 
-func NewUserUpdateParser() *UserUpdateParser {
-	return &UserUpdateParser{model.User{}}
-}
-
-func (p *UserUpdateParser) TryParseFormat(data string) error {
-	if err := json.Unmarshal([]byte(data), &p.model); err != nil {
-		return err
+func NewUserUpdateParser(
+	parser gateway.IFormatParser,
+	input gateway.IInput,
+	output gateway.IOutput,
+) *UserUpdateParser {
+	return &UserUpdateParser{
+		new(model.User), parser, input, output,
 	}
-	return nil
 }
 
-func (p *UserUpdateParser) Input(data string) interface{} {
-	if err := json.Unmarshal([]byte(data), &p.model); err != nil {
-		return err
-	}
+func (p *UserUpdateParser) GetModel() *model.User {
 	return p.model
+}
+
+func (p *UserUpdateParser) SetParser(interface{}) {
+	return
 }

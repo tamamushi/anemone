@@ -2,8 +2,8 @@
 
 /*
 Adapter は実行時のブートストラップが含まれる。
-CleanArchitectureのInterface Adaptersにおける振る舞いを
-実装しています。
+
+CleanArchitectureのInterface Adaptersにおける振る舞いを実装しています。
 */
 package adapter
 

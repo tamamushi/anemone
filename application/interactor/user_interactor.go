@@ -17,8 +17,8 @@ func NewUserInteractor() *userInteractor {
 }
 
 func (u *userInteractor) Create(user interface{}) (*model.User, error) {
-	if user, ok := user.(model.User); ok {
-		return &user, nil
+	if user, ok := user.(*model.User); ok {
+		return user, nil
 	}
 	return nil, fmt.Errorf("faild!")
 }
@@ -31,7 +31,7 @@ func (u *userInteractor) Update(user interface{}) (*model.User, error) {
 	return nil, nil
 }
 func (u *userInteractor) FindById(id string) (*model.User, error) {
-	return nil, nil
+	return &model.User{}, nil
 }
 func (u *userInteractor) Finds() ([]*model.User, error) {
 	return nil, nil

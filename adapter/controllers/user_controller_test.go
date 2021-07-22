@@ -3,6 +3,7 @@
 package controllers_test
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 
@@ -13,7 +14,14 @@ import (
 	"anemone/codes"
 )
 
-func SetupUserControllerTest(t *testing.T, tt *test.TCase) *cobra.Command {
+func SetupUserControllerTest(
+	b *bytes.Buffer,
+	t *testing.T,
+	tt *test.TCase,
+) *cobra.Command {
+
+	g := &test.GatewayMock{}
+	g.SetOut(b)
 
 	// ユースケースの準備
 	interactor := test.NewUserUseCaseMock()
@@ -25,7 +33,7 @@ func SetupUserControllerTest(t *testing.T, tt *test.TCase) *cobra.Command {
 	cmd, args := test.SetupRootCMD(tt)
 
 	// Rootcmdへコマンドコントローラーを登録
-	cmd.AddCommand(controller.Handler())
+	cmd.AddCommand(controller.Handler(g))
 	cmd.SetArgs(append([]string{"user"}, args.GetArgString()...))
 	return cmd
 }

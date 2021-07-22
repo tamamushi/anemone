@@ -74,7 +74,7 @@ var Buffer *bytes.Buffer
 func TestRun(
 	t *testing.T,
 	cases []*TCase,
-	setupfunc func(t *testing.T, tt *TCase) *cobra.Command,
+	setupfunc func(b *bytes.Buffer, t *testing.T, tt *TCase) *cobra.Command,
 	testName string,
 ) {
 	fmt.Printf("\x1b[1mTesting [%s] \x1b[0m\n", testName)
@@ -84,9 +84,8 @@ func TestRun(
 			//タイトルをBOLD設定
 			t.Logf(Title(index, tt.GetTestName()))
 
-			cmd := setupfunc(t, tt)
-			//buf := new(bytes.Buffer)
 			Buffer = new(bytes.Buffer)
+			cmd := setupfunc(Buffer, t, tt)
 			cmd.SetOut(Buffer)
 			cmd.SetErr(Buffer)
 			err := cmd.Execute()
@@ -96,7 +95,7 @@ func TestRun(
 				if err, ok := err.(errors.Errors); ok {
 					// エラーの場合、エラーコードにより正しさを判定
 					c := errors.Code(err)
-					if c == tt.GetExpectCode() {
+					if tt.GetExpectCode() == c {
 						//ExpectCodeが返却されれば期待通り
 						t.Logf(ExpectedError(tt.GetExpectCodeMsg()))
 						result = OK()
@@ -111,16 +110,22 @@ func TestRun(
 					result = NG()
 				}
 			} else {
-				// nil が返却された場合
-				if err == nil && tt.GetExpected() == "OK" {
-					// 正常動作完了
-					t.Logf(ExpectedOperation(tt.GetExpectedMsg()))
-					fmt.Fprintf(Buffer, "正常動作\n")
-					result = OK()
-				} else {
+				//if err == nil && tt.GetExpected() == "OK" {
+				// nil が返却された場合。正常動作で完了
+				if err == nil {
 					c := Buffer.String()
-					t.Errorf(UnExpectedOperation(tt.GetExpectedMsg(), c))
-					result = NG()
+					if c == tt.GetExpected() {
+						t.Logf(ExpectedOperation(tt.GetExpectedMsg()))
+						fmt.Fprintf(Buffer, " 正常動作\n")
+						result = OK()
+					} else if tt.GetExpected() == "OK" {
+						t.Logf(ExpectedOperation(tt.GetExpectedMsg()))
+						fmt.Fprintf(Buffer, "正常動作\n")
+						result = OK()
+					} else {
+						t.Errorf(UnExpectedOperation(tt.GetExpectedMsg(), c))
+						result = NG()
+					}
 				}
 			}
 			fmt.Printf("[%03d]:[%s]", index, result)

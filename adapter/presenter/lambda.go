@@ -25,6 +25,6 @@ func (p *lambdaPresenter) Command() []string {
 func (p *lambdaPresenter) Arguments() []string {
 	return []string{
 		"--data",
-		"{ \"id\": \"xxxx-xxxx-xxxx-xxx\", \"email\": \"t.koube.cp@gmail.com\"}",
+		"{ \"id\": \"xxxx-xxxx-xxxx-xxx\",\"email\": \"t.koube.cp@gmail.com\"}",
 	}
 }

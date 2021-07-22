@@ -11,6 +11,7 @@ package handler
 import (
 	"github.com/spf13/cobra"
 
+	"anemone/adapter/gateway"
 	"anemone/application/usecase"
 	"anemone/codes"
 	"anemone/errors"
@@ -24,8 +25,16 @@ import (
 // 引数のidに指定された文字列以外が使われてる場合はエラーのバリデーションが未実装
 //
 // HISTORY(koube):
-// 2021/06/27 UserRemoveHandler 新規作成
-// 2021/07/05 UserRemoveHandler UseCaseSetterとCommandConstructorに対応
+// 2021/06/27 UserRemoveHandler
+// 新規作成
+//
+// 2021/07/05 UserRemoveHandler
+// UseCaseSetterとCommandConstructorに対応
+//
+// 2021/07/26 UserRemoveHandler
+// 指定された引数のバリデーションをParserクラスに切り出す。
+// Parserはインジェクションで実装を入れ替えられる。外界との変換処理は
+// Parserクラスの担当として実装する。
 
 // UserRemoveHanlder のinterface定義
 type UserRemoveHanlder interface {
@@ -36,11 +45,12 @@ type UserRemoveHanlder interface {
 
 type userRemoveHandler struct {
 	interactor usecase.IUserUseCase
+	*UserRemoveParser
 	rhandler
 }
 
-func NewUserRemoveHandler() UserRemoveHanlder {
-	r := &userRemoveHandler{}
+func NewUserRemoveHandler(p *UserRemoveParser) UserRemoveHanlder {
+	r := &userRemoveHandler{UserRemoveParser: p}
 	r.AddSetter("UserUseCase", r.SetUseCase)
 	r.SetHandle(r.Handle)
 	return r
@@ -52,7 +62,10 @@ func init() {
 		err,
 		"Failed to building User command group (%s)",
 	)
-	handler := NewUserRemoveHandler()
+	format := gateway.NewUserIdFormatParser()
+
+	parser := NewUserRemoveParser(format)
+	handler := NewUserRemoveHandler(parser)
 	constructor.Register(handler.GetHandle())
 }
 
@@ -74,37 +87,31 @@ func (s *userRemoveHandler) Handle() *cobra.Command {
 					"Need to specified ID",
 				)
 			}
-			// id の桁数が指定されたフォーマットじゃない場合はエラー
-			/*
-				if len(id) > 20 {
-					return errors.New(
-						codes.InvalidArgument,
-						"Allow the id formats XXXX-XXXX-XXXX-XXXX",
-					)
+			// idが指定されたフォーマットじゃない場合はエラー
+			parser, ok := interface{}(s).(gateway.IFormatParser)
+			if ok {
+				err := parser.TryParse(id, s.GetModel())
+				if err != nil {
+					return err
 				}
-			*/
-			// id が指定されたキャラクタセットじゃなければエラー
-			// キャラクタセットは、0-9、A-Z（小文字のa-zは含まない）
-			/*
-				if len(id) > 20 {
-					return errors.New(
-						codes.InvalidArgument,
-						"Allow the usable character is 0-9, A-Z",
-					)
-				}
-			*/
-			return nil
+				return nil
+			}
+			// TryParserが存在しない（インターフェースを満たさない）場合は
+			// Internal Server Error
+			return errors.New(
+				codes.InternalServerError,
+				"Required Method dose not exist in the specified parser",
+			)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, _ := cmd.Flags().GetString("id")
-			err := s.Remove(id)
-			if err != nil {
+			if err := s.Remove(id); err != nil {
 				return err
 			}
 			return nil
 		},
 	}
-	cmd.Flags().String("id", "", "Your name")
+	cmd.Flags().String("id", "", "Specify the ID that identifies the User")
 	return cmd
 }
 
@@ -118,5 +125,11 @@ func (s *userRemoveHandler) Remove(id string) error {
 			err,
 		)
 	}
+	s.gateway.SetResponse(
+		"",
+		/*
+			レスポンスはなし。正常に終了した事を表す何か？
+			nilをResponseにセットする？
+		*/)
 	return nil
 }

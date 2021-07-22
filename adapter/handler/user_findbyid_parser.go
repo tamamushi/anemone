@@ -9,9 +9,6 @@ UserFindByIdParser
 package handler
 
 import (
-	//"fmt"
-
-	//	"encoding/json"
 	"anemone/adapter/gateway"
 	"anemone/model"
 )
@@ -20,21 +17,22 @@ import (
 //
 // HISTORY(koube):
 // 2021/07/17 UserFindByIdParser 新規作成
+// 2021/07/26 UserFindByIdParser IFormatParserとIOutputに対応させる
 
 type UserFindByIdParser struct {
-	model model.User
-//	*gateway.IFormatParser
-	*gateway.Output
+	model *model.User
+	gateway.IFormatParser
+	gateway.IOutput
 }
 
 func NewUserFindByIdParser(
-//	parser *gateway.IFormatParser,
-	output *gateway.Output,
+	parser gateway.IFormatParser,
+	output gateway.IOutput,
 ) *UserFindByIdParser {
 
 	return &UserFindByIdParser{
-		model.User{},
-//		parser,
+		new(model.User),
+		parser,
 		output,
 	}
 }
@@ -42,32 +40,6 @@ func NewUserFindByIdParser(
 func (p *UserFindByIdParser) SetParser(interface{}) {
 	return
 }
-
 func (p *UserFindByIdParser) GetModel() *model.User {
-	return &p.model
-}
-
-func (p *UserFindByIdParser) TryParse(data string) error {
-	(*UserIdFormatParser).TryParse(nil, 
-}
-
-func NewOutputParser() *gateway.Output {
-	return &gateway.Output{}
-}
-
-/*
-func (p *userFindByIdParser) TryParseFormat(data string) error {
-	fmt.Printf("%#v", p.model)
-	if err := json.Unmarshal([]byte(data), &p.model); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (p *UserCreateParser) Input(data string) interface{} {
-	if err := json.Unmarshal([]byte(data), &p.model); err != nil {
-		return err
-	}
 	return p.model
 }
-*/
