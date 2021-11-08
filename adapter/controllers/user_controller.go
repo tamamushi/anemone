@@ -102,6 +102,9 @@ func (s *userController) Handler(g gateway.IGateway) *cobra.Command {
 					v(s.interactor)
 				}
 			}
+			// handlerにGatewayを登録する。
+			// Gatewayはhandlerの実行結果を格納し、最終結果出力時に
+			// 適当な出力先まで実行結果を運ぶ役割を担う
 			handle.SetGateway(g)
 			cmd.AddCommand(handle.Handle())
 		}

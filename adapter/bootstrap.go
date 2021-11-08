@@ -55,13 +55,20 @@ func Bootstrap(p presenter.Presenter) {
 		err,
 		"Failed to building Root command group (%s)",
 	); ok {
+		// CommandBuilderはanemone空間のコマンドを保持する
+		// blder.GetCommandsでanemone空間のコマンドを展開し
+		// cobraのコマンド実行プロセスに登録する
 		cmd.AddCommand(blder.GetCommands()...)
 		cmd.SetArgs(append(p.Command(), p.Arguments()...))
+		// コマンド実行はcobraのコマンド実行プロセスを流用する
 		cobra.CheckErr(cmd.Execute())
 
+		// gatewayはシングルトンでcontrollers内でインスタンス化され、
+		// 実行結果の出力情報などを保持する。
 		gateway := gateway.GetGateway()
 		cmd.Printf("%s", gateway.Response())
 		fmt.Print(buffer)
+		// gatewayを返す仕様にする？
 	}
 }
 
